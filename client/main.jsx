@@ -1,9 +1,7 @@
-import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { render } from 'react-dom';
- 
-import AccountLogin from './components/account_login.jsx';
+import { renderRoutes } from '../imports/startup/client/routes.jsx';
 
 Meteor.startup(() => {
-  render(<AccountLogin />, document.getElementById('account-login'));
+  render(renderRoutes(), document.getElementById('app'));
 });
