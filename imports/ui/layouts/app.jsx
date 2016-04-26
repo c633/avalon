@@ -11,10 +11,6 @@ export default class App extends Component {
     super(props);
   }
 
-  logout() {
-    Meteor.logout();
-  }
-
   render() {
     const { user } = this.props;
     return (
@@ -31,8 +27,4 @@ export default class App extends Component {
 
 App.propTypes = {
   user: React.PropTypes.object,      // current meteor user
-};
-
-App.contextTypes = {
-  router: React.PropTypes.object,
 };
