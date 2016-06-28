@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
-import { Accounts } from 'meteor/accounts-base';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
  
-export default class Account extends Component {
+export default class UserMenu extends Component {
   constructor(props) {
     super(props);
     this.state = { errors: {} };
@@ -52,6 +51,6 @@ export default class Account extends Component {
   }
 }
 
-Account.propTypes = {
+UserMenu.propTypes = {
   user: React.PropTypes.object
 };

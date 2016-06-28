@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Account from '../components/account';
+import UserMenu from '../components/user_menu';
 import Main from '../layouts/main';
 
 export default class Lobby extends Component {
@@ -10,7 +10,7 @@ export default class Lobby extends Component {
   render() {
     const { user } = this.props;
     const content = (
-      <Account user={user}/>
+      <UserMenu user={user}/>
     );
     return <Main content={content}/>;
   }
