@@ -20,3 +20,7 @@ ecmascript              # Enable ECMAScript2015+ syntax in app code
 react-meteor-data
 accounts-base
 accounts-password
+mdg:validated-method
+aldeed:simple-schema
+aldeed:collection2
+dburles:collection-helpers
