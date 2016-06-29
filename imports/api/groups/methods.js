@@ -10,7 +10,7 @@ export const insert = new ValidatedMethod({
   }).validator(),
   run({ name }) {
     const group = {
-      userId: Meteor.userId(),
+      ownerId: Meteor.userId(),
       name: name,
     };
     return Groups.insert(group);

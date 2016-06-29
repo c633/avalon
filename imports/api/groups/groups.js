@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 
@@ -21,9 +22,9 @@ Groups.deny({
 });
 
 Groups.schema = new SimpleSchema({
-  userId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Creator's id
+  ownerId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Owner's id
   name: { type: String },
-  playerIds: { type: [String], defaultValue: [] }, // Exclude the creator's id
+  playerIds: { type: [String], defaultValue: [] }, // Exclude the owner's id
 });
 
 Groups.attachSchema(Groups.schema);
@@ -32,10 +33,16 @@ Groups.attachSchema(Groups.schema);
 // to the client. If we add secret properties to Group objects, don't list
 // them here to keep them private to the server.
 Groups.publicFields = {
-  userId: 1,
+  ownerId: 1,
   name: 1,
   playerIds: 1,
 };
 
 Groups.helpers({
+  owner() {
+    return Meteor.users.findOne(this.ownerId);
+  },
+  players() {
+    return this.playerIds.map(playerId => Meteor.users.findOne(playerId));
+  }
 });

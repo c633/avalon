@@ -20,13 +20,13 @@ export default class Groups extends React.Component {
         alert('Could not create group.');
       }
     });
-    // router.push(`/groups/${ groupId }`);
+    router.push(`/groups/${ groupId }`);
   }
 
   render() {
     const { groups } = this.props;
     var formCreateGroup;
-    if (Meteor.user()) { // Render form for creating new 'Group' if user has already logged in
+    if (!!Meteor.userId()) { // Render form for creating new 'Group' if user has already logged in
       formCreateGroup = (
         <div>
           <form onSubmit={this.create}>
@@ -40,8 +40,10 @@ export default class Groups extends React.Component {
         {formCreateGroup}
         <div>
         {groups.map(group => (
-          <div key={group._id}>
-            {group.name}
+          <div key= {group._id } >
+            <Link to={ `/groups/${ group._id }` } title={ group.name }>
+              {group.name}
+            </Link>
           </div>
         ))}
         </div>

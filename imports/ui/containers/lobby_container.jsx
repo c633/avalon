@@ -4,7 +4,7 @@ import { createContainer } from 'meteor/react-meteor-data';
 import Lobby from '../pages/lobby';
 
 export default createContainer(() => {
-  Meteor.subscribe('groups.public');
+  Meteor.subscribe('groups.findAll');
   return {
     user: Meteor.user(),
     groups: Groups.find().fetch(),
