@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import RaisedButton from 'material-ui/RaisedButton';
 import Main from '../layouts/main';
 
-export default class Group extends React.Component {
+export default class GroupPage extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -16,7 +16,7 @@ export default class Group extends React.Component {
         <div>Owner: {group.owner().username}</div>
       );
       let players = group.players().map(player => (
-        <div>{player.name}</div>
+        <div key={player._id}>{player.username}</div>
       ));
       content = (
         <div>
@@ -32,7 +32,7 @@ export default class Group extends React.Component {
   }
 }
 
-Group.propTypes = {
+GroupPage.propTypes = {
   group: React.PropTypes.object,
   loaded: React.PropTypes.bool,
 };

@@ -4,9 +4,10 @@ import { createContainer } from 'meteor/react-meteor-data';
 import Lobby from '../pages/lobby';
 
 export default createContainer(() => {
-  Meteor.subscribe('groups.findAll');
+  const loaded = Meteor.subscribe('groups.findAll').ready() && Meteor.subscribe('users.findAll').ready();
   return {
     user: Meteor.user(),
     groups: Groups.find().fetch(),
+    loaded: loaded
   };
 }, Lobby);

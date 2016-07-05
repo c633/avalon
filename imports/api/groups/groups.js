@@ -4,6 +4,7 @@ import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 
 class GroupsCollection extends Mongo.Collection {
   insert(group, callback) {
+    group.playerIds = [group.ownerId];
     return super.insert(group, callback);
   }
 
@@ -24,7 +25,7 @@ Groups.deny({
 Groups.schema = new SimpleSchema({
   ownerId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Owner's id
   name: { type: String },
-  playerIds: { type: [String], defaultValue: [] }, // Exclude the owner's id
+  playerIds: { type: [String], defaultValue: [] }, // Include the owner's id
 });
 
 Groups.attachSchema(Groups.schema);
@@ -44,5 +45,8 @@ Groups.helpers({
   },
   players() {
     return this.playerIds.map(playerId => Meteor.users.findOne(playerId));
+  },
+  hasPlayer(userId) {
+    return this.playerIds.indexOf(userId) != -1;
   }
 });
