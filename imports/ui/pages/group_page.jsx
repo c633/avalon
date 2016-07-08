@@ -13,9 +13,9 @@ export default class GroupPage extends React.Component {
     let content;
     if (loaded) {
       let owner = (
-        <div>Owner: {group.owner().username}</div>
+        <div>Owner: {group.getOwner().username}</div>
       );
-      let players = group.players().map(player => (
+      let players = group.getPlayers().map(player => (
         <div key={player._id}>{player.username}</div>
       ));
       content = (

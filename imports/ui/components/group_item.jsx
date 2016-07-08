@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import RaisedButton from 'material-ui/RaisedButton';
 import { TableRow, TableRowColumn } from 'material-ui/Table';
+import { Groups } from '../../api/groups/groups.js'; // Constants only
 import { join, leave } from '../../api/groups/methods.js';
 
 export default class GroupItem extends React.Component {
@@ -18,7 +19,7 @@ export default class GroupItem extends React.Component {
       if (err) {
         alert(err.reason);
       } else {
-        router.push(`/groups/${ groupId }`);
+        router.push(`/groups/${groupId}`);
       }
     });
   }
@@ -37,27 +38,31 @@ export default class GroupItem extends React.Component {
 
   render() {
     const { group } = this.props;
-    const alreadyJoined = group.hasPlayer(Meteor.userId());
+    const playersCount = group.getPlayers().length;
+    const joined = group.hasPlayer(Meteor.userId());
+    const joinable = !joined && !group.isPlaying();
     const linkGroupName = (
       <TableRowColumn>
         {group.name}
-        { alreadyJoined ? 
-          <Link to={ `/groups/${ group._id }` } title={ group.name } style={ { marginLeft: '10px' } }>
+        {
+          joined ? 
+          <Link to={`/groups/${group._id}`} title={group.name} style={{ marginLeft: '10px' }}>
             Visit group
           </Link> : ''
         }
       </TableRowColumn>
     );
-    const buttonJoinLeaveGroup = !!Meteor.userId() ? (
+    const buttonJoinLeaveGroup = !!Meteor.userId() && (joined || playersCount < Groups.MAX_PLAYERS_COUNT) ? (
       <TableRowColumn>
-        <RaisedButton primary={!alreadyJoined} secondary={alreadyJoined} label={alreadyJoined ? 'Leave' : 'Join'} onClick={alreadyJoined ? this.leaveGroup : this.joinGroup}></RaisedButton>
+        <RaisedButton primary={joinable} secondary={!joinable} label={joinable ? 'Join' : 'Leave'} onClick={joinable ? this.joinGroup : this.leaveGroup}></RaisedButton>
       </TableRowColumn>
     ) : (<TableRowColumn></TableRowColumn>);
     return (
       <TableRow selectable={false} key={group._id}>
         {linkGroupName}
-        <TableRowColumn>{group.owner().username}</TableRowColumn>
-        <TableRowColumn>{group.players().length}</TableRowColumn>
+        <TableRowColumn>{group.getOwner().username}</TableRowColumn>
+        <TableRowColumn>{playersCount}</TableRowColumn>
+        <TableRowColumn>{group.isPlaying() ? 'Playing' : playersCount >= Groups.MIN_PLAYERS_COUNT ? 'Ready' : 'Waiting for players'}</TableRowColumn>
         {buttonJoinLeaveGroup}
       </TableRow>
     );

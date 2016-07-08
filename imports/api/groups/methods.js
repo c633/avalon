@@ -31,7 +31,7 @@ export const join = new ValidatedMethod({
       throw new Meteor.Error('groups.join.alreadyJoined', 'Already joined this group.');
     }
     Groups.update(groupId, {
-      $push: { playerIds: this.userId },
+      $push: { players: { id: this.userId, isSpy: false } },
     });
   },
 });
@@ -47,13 +47,13 @@ export const leave = new ValidatedMethod({
     }
     const group = Groups.findOne(groupId);
     if (!group.hasPlayer(this.userId)) {
-      throw new Meteor.Error('groups.leave.alreadyJoined', 'Already leaved this group.');
+      throw new Meteor.Error('groups.leave.alreadyLeaved', 'Already leaved this group.');
     }
-    if (group.players().length == 1) { // The last player wants to leave this group
+    if (group.getPlayers().length == 1) { // The last player wants to leave this group
       Groups.remove(groupId);
     } else {
       Groups.update(groupId, {
-        $pull: { playerIds: this.userId },
+        $pull: { players: { id: this.userId } },
       });
     }
   },

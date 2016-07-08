@@ -18,7 +18,7 @@ export default class GroupList extends React.Component {
       if (err) {
         alert(err.reason);
       } else {
-        router.push(`/groups/${ groupId }`);
+        router.push(`/groups/${groupId}`);
       }
     });
   }
@@ -33,7 +33,8 @@ export default class GroupList extends React.Component {
             <TextField hintText="Name" ref="name" name="name"/>
             <RaisedButton primary={true} label="Create new group" type="submit"/>
           </form>
-        </div>); 
+        </div>
+      ); 
     }
     return (
       <div>
@@ -45,6 +46,7 @@ export default class GroupList extends React.Component {
                 <TableHeaderColumn>Name</TableHeaderColumn>
                 <TableHeaderColumn>Owner</TableHeaderColumn>
                 <TableHeaderColumn>Number of players</TableHeaderColumn>
+                <TableHeaderColumn>Status</TableHeaderColumn>
                 <TableHeaderColumn></TableHeaderColumn>
               </TableRow>
             </TableHeader>

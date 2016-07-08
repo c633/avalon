@@ -5,7 +5,7 @@ import GroupPage from '../pages/group_page.jsx';
 
 export default createContainer(({ params: { id } }) => {
   const group = Groups.findOne(id);
-  const loaded = Meteor.subscribe('groups.find', id).ready() && Meteor.subscribe('users.findAll').ready();
+  const loaded = Meteor.subscribe('groups.findOne', id).ready() && Meteor.subscribe('users.findAll').ready();
   return {
     group,
     loaded,
