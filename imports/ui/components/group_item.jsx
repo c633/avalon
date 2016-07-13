@@ -40,7 +40,8 @@ export default class GroupItem extends React.Component {
     const { group } = this.props;
     const playersCount = group.getPlayers().length;
     const joined = group.hasPlayer(Meteor.userId());
-    const joinable = !joined && !group.isPlaying();
+    const isPlaying = group.isPlaying();
+    const joinable = !joined && !isPlaying;
     const linkGroupName = (
       <TableRowColumn>
         {group.name}
@@ -52,13 +53,13 @@ export default class GroupItem extends React.Component {
         }
       </TableRowColumn>
     );
-    const buttonJoinLeaveGroup = !!Meteor.userId() && (joined || playersCount < Groups.MAX_PLAYERS_COUNT) ? (
+    const buttonJoinLeaveGroup = !!Meteor.userId() && (joined || playersCount < Groups.MAX_PLAYERS_COUNT) && !isPlaying ? (
       <TableRowColumn>
         <RaisedButton primary={joinable} secondary={!joinable} label={joinable ? 'Join' : 'Leave'} onClick={joinable ? this.joinGroup : this.leaveGroup}></RaisedButton>
       </TableRowColumn>
     ) : (<TableRowColumn></TableRowColumn>);
     return (
-      <TableRow selectable={false} key={group._id}>
+      <TableRow selectable={false}>
         {linkGroupName}
         <TableRowColumn>{group.getOwner().username}</TableRowColumn>
         <TableRowColumn>{playersCount}</TableRowColumn>

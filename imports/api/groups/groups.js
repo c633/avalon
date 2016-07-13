@@ -35,17 +35,23 @@ Groups.deny({
   remove() { return true; },
 });
 
+PlayersSchema = new SimpleSchema({
+  id: { type: String, regEx: SimpleSchema.RegEx.Id }, // Group player's id
+  isSpy: { type: Boolean, defaultValue: false }, // Whether group player is spy or not
+});
+
+MissionsSchema = new SimpleSchema({
+  leaderId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Mission leader's id
+  memberIds: { type: [String], defaultValue: [] }, // Id of players who were selected to be sent out on the mission, included in `players.id`
+  approverIds: { type: [String], defaultValue: [] }, // Id of players who approved the mission, included in `players.id`
+  failVoterIds: { type: [String], defaultValue: [] }, // Id of members who voted for the mission to fail, included in `missions.memberIds`
+});
+
 Groups.schema = new SimpleSchema({
   ownerId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Owner's id
   name: { type: String },
-  players: { type: [Object], defaultValue: [] }, // Group players, include the owner
-  "players.$.id": { type: String, regEx: SimpleSchema.RegEx.Id }, // Group player's id
-  "players.$.isSpy": { type: Boolean, defaultValue: false }, // Whether group player is spy or not
-  missions: { type: [Object], defaultValue: [] }, // Mission proposals
-  "missions.$.leaderId": { type: String, regEx: SimpleSchema.RegEx.Id }, // Mission leader's id
-  "missions.$.memberIds": { type: [String], defaultValue: [] }, // Id of players who were selected to be sent out on the mission, included in `players.$.id`
-  "missions.$.approverIds": { type: [String], defaultValue: [] }, // Id of players who approved the mission, included in `players.$.id`
-  "missions.$.failVoterIds": { type: [String], defaultValue: [] }, // Id of members who voted for the mission to fail, included in `missions.$.memberIds`
+  players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
+  missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
 });
 
 Groups.attachSchema(Groups.schema);
@@ -72,11 +78,17 @@ Groups.helpers({
   getOwner() {
     return Meteor.users.findOne(this.ownerId);
   },
+  belongsTo(userId) {
+    return this.ownerId == userId;
+  },
   getPlayers() {
-    return this.players.map(player => Meteor.users.findOne(player.id));
+    return this.players.map(player => ({ user: Meteor.users.findOne(player.id), isSpy: player.isSpy }));
   },
   hasPlayer(userId) {
     return this.players.find((p) => { return p.id == userId }) != undefined;
+  },
+  hasSpy(userId) {
+    return this.players.find((p) => { return p.id == userId && p.isSpy }) != undefined;
   },
   isPlaying() {
     return this.missions.length != 0
