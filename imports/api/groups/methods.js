@@ -71,7 +71,7 @@ export const start = new ValidatedMethod({
       throw new Meteor.Error('groups.start.accessDenied', 'Don\'t have permission to start playing.');
     }
     Groups.update(groupId, {
-      $set: { missions: reset ? [] : [{ leaderId: this.userId, memberIds: [], approverIds: [], failVoterIds: [] }] },
+      $set: { missions: reset ? [] : [{ leaderId: this.userId, memberIndices: [], approvals: [], failVotes: [] }] },
     });
     if (!reset) {
       const playersCount = group.players.length;
@@ -87,5 +87,23 @@ export const start = new ValidatedMethod({
         $set: { players: group.players.map(player => ({ id: player.id, isSpy: false })) }
       });
     }
+  },
+});
+
+export const selectMembers = new ValidatedMethod({
+  name: 'groups.selectMembers',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    selectedMemberIndices: { type: [Number] },
+  }).validator(),
+  run({ groupId, selectedMemberIndices }) {
+    const group = Groups.findOne(groupId);
+    if (!group.lastMissionMembersIsValid(selectedMemberIndices)) {
+      throw new Meteor.Error('groups.selectMembers.invalid', 'Invalid selected mission team members.');
+    }
+    group.missions[group.missions.length - 1].memberIndices = selectedMemberIndices;
+    Groups.update(groupId, {
+      $set: { missions: group.missions } // TODO: Properly set last mission selected members
+    });
   },
 });

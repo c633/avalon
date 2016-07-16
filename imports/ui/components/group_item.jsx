@@ -15,7 +15,7 @@ export default class GroupItem extends React.Component {
   joinGroup() {
     const { router } = this.context;
     const groupId = this.props.group._id;
-    join.call({ groupId: groupId }, (err) => {
+    join.call({ groupId: groupId }, err => {
       if (err) {
         alert(err.reason);
       } else {
@@ -27,7 +27,7 @@ export default class GroupItem extends React.Component {
   leaveGroup() {
     const { router } = this.context;
     const groupId = this.props.group._id;
-    leave.call({ groupId: groupId }, (err) => {
+    leave.call({ groupId: groupId }, err => {
       if (err) {
         alert(err.reason);
       } else {

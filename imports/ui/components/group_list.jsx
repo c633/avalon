@@ -14,7 +14,7 @@ export default class GroupList extends React.Component {
   createGroup(event) {
     event.preventDefault();
     const { router } = this.context;
-    const groupId = insert.call({ name: this.refs.name.getValue() }, (err) => {
+    const groupId = insert.call({ name: this.refs.name.getValue() }, err => {
       if (err) {
         alert(err.reason);
       } else {
@@ -40,7 +40,7 @@ export default class GroupList extends React.Component {
       <div>
         {formCreateGroup}
         <div>
-          <Table fixedHeader={true}>
+          <Table>
             <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
               <TableRow>
                 <TableHeaderColumn>Name</TableHeaderColumn>
@@ -51,9 +51,9 @@ export default class GroupList extends React.Component {
               </TableRow>
             </TableHeader>
             <TableBody displayRowCheckbox={false}>
-              {groups.map(group => (
+              {groups.map(group =>
                 <GroupItem group={group} key={group._id}/>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>

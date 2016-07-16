@@ -42,9 +42,9 @@ PlayersSchema = new SimpleSchema({
 
 MissionsSchema = new SimpleSchema({
   leaderId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Mission leader's id
-  memberIds: { type: [String], defaultValue: [] }, // Id of players who were selected to be sent out on the mission, included in `players.id`
-  approverIds: { type: [String], defaultValue: [] }, // Id of players who approved the mission, included in `players.id`
-  failVoterIds: { type: [String], defaultValue: [] }, // Id of members who voted for the mission to fail, included in `missions.memberIds`
+  memberIndices: { type: [Number], defaultValue: [] }, // Indices of players who were selected to be sent out on the mission, correspond to `players.id`
+  approvals: { type: [Boolean], defaultValue: [] }, // Indicate players whether to approve the mission team make-up or not, with indices correspond to `players.id`
+  failVotes: { type: [Boolean], defaultValue: [] }, // Indicate members whether to vote for the mission to fail or not, with indices correspond to `missions.memberIndices`
 });
 
 Groups.schema = new SimpleSchema({
@@ -85,15 +85,38 @@ Groups.helpers({
     return this.players.map(player => ({ user: Meteor.users.findOne(player.id), isSpy: player.isSpy }));
   },
   hasPlayer(userId) {
-    return this.players.find((p) => { return p.id == userId }) != undefined;
+    return this.players.find(p => p.id == userId) != undefined;
   },
   hasSpy(userId) {
-    return this.players.find((p) => { return p.id == userId && p.isSpy }) != undefined;
+    return this.players.find(p => p.id == userId && p.isSpy) != undefined;
   },
   isPlaying() {
     return this.missions.length != 0
+  },
+  lastMissionHasLeader(userId) {
+    return this.missions.length > 0 ? this.missions[this.missions.length - 1].leaderId == userId : false;
+  },
+  lastMissionHasMember(userId) {
+    return this.missions.length > 0 ? this.missions[this.missions.length - 1].memberIndices.find(i => this.players[i].id == userId) != undefined : false;
+  },
+  lastMissionIsSelectingMembers() {
+    return this.missions.length > 0 ? this.missions[this.missions.length - 1].memberIndices.length < Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1] : false;
+  },
+  lastMissionMembersIsValid(selectedMemberIndices) {
+    return selectedMemberIndices.length != Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1] || selectedMemberIndices.find(i => i >= this.players.length) != undefined ? false : true;
+  },
+  lastMissionIsWaitingForApproval() {
+    return this.missions.length > 0 ? this.missions[this.missions.length - 1].approvals.find(a => a == undefined) != undefined : false;
   }
 });
 
 Groups.MIN_PLAYERS_COUNT = 5;
 Groups.MAX_PLAYERS_COUNT = 10;
+Groups.MISSIONS_MEMBERS_COUNT = {
+  5: [2, 3, 2, 3, 3],
+  6: [2, 3, 3, 3, 4],
+  7: [2, 3, 3, 4, 4],
+  8: [3, 4, 4, 5, 5],
+  9: [3, 4, 4, 5, 5],
+  10: [3, 4, 4, 5, 5], 
+};
