@@ -10,9 +10,10 @@ export default class PlayerItem extends React.Component {
     const { selected, user, part, selectable, role, ...others } = this.props;
     return (
       <TableRow selected={selected} {...others} selectable={selectable} style={Meteor.userId() == user._id ? { fontWeight: 'bold' } : {}}>
+        {selectable ? others.children[0] : ''} {/* Explicitly render the checkbox passed down from TableBody */}
         <TableRowColumn>{user.username}</TableRowColumn>
         <TableRowColumn>{part}</TableRowColumn>
-        {selectable ? others.children[0] : <TableRowColumn>{role}</TableRowColumn>} {/* Explicitly render the checkbox passed down from TableBody */}
+        <TableRowColumn>{role}</TableRowColumn>
       </TableRow>
     );
   }

@@ -71,9 +71,10 @@ export const start = new ValidatedMethod({
       throw new Meteor.Error('groups.start.accessDenied', 'Don\'t have permission to start playing.');
     }
     Groups.update(groupId, {
-      $set: { missions: reset ? [] : [{ leaderId: this.userId, memberIndices: [], approvals: [], failVotes: [] }] },
+      $set: { missions: [] },
     });
     if (!reset) {
+      group.startSelectingMembers();
       const playersCount = group.players.length;
       let indices = Array.from(new Array(playersCount), (_, i) => i);
       for (let _ of Array(Math.round(playersCount / 3)).keys()) {
@@ -98,12 +99,58 @@ export const selectMembers = new ValidatedMethod({
   }).validator(),
   run({ groupId, selectedMemberIndices }) {
     const group = Groups.findOne(groupId);
-    if (!group.lastMissionMembersIsValid(selectedMemberIndices)) {
+    if (!group.isSelectedMembersValid(selectedMemberIndices)) {
       throw new Meteor.Error('groups.selectMembers.invalid', 'Invalid selected mission team members.');
     }
-    group.missions[group.missions.length - 1].memberIndices = selectedMemberIndices;
+    const lastMissionMemberIndices = {};
+    lastMissionMemberIndices[`missions.${group.missions.length - 1}.memberIndices`] = selectedMemberIndices;
     Groups.update(groupId, {
-      $set: { missions: group.missions } // TODO: Properly set last mission selected members
+      $set: lastMissionMemberIndices
     });
+    group.startWaitingForApproval();
+  },
+});
+
+export const approve = new ValidatedMethod({
+  name: 'groups.approve',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    userId: { type: String },
+    approval: { type: Boolean },
+  }).validator(),
+  run({ groupId, userId, approval }) {
+    let group = Groups.findOne(groupId);
+    const lastMissionApproval = {};
+    lastMissionApproval[`missions.${group.missions.length - 1}.approvals.${group.players.map(p => p.id).indexOf(userId)}`] = approval;
+    Groups.update(groupId, {
+      $set: lastMissionApproval
+    });
+    group = Groups.findOne(groupId); // Update local variable
+    if (group.isDisapproved()) {
+      group.startSelectingMembers();
+    } else if (!group.isWaitingForApproval()) {
+      group.startWaitingForVote();
+    }
+  },
+});
+
+export const vote = new ValidatedMethod({
+  name: 'groups.vote',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    userId: { type: String },
+    success: { type: Boolean },
+  }).validator(),
+  run({ groupId, userId, success }) {
+    let group = Groups.findOne(groupId);
+    const lastMissionSuccessVote = {};
+    lastMissionSuccessVote[`missions.${group.missions.length - 1}.successVotes.${group.getLastMission().memberIndices.indexOf(group.players.map(p => p.id).indexOf(userId))}`] = success;
+    Groups.update(groupId, {
+      $set: lastMissionSuccessVote
+    });
+    group = Groups.findOne(groupId); // Update local variable
+    if (!group.isWaitingForVote()) {
+      group.startSelectingMembers();
+    }
   },
 });

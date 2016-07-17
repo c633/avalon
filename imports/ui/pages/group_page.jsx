@@ -5,7 +5,7 @@ import { Table, TableHeader, TableHeaderColumn, TableBody, TableRow } from 'mate
 import Main from '../layouts/main';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
 import PlayerItem from '../components/player_item.jsx';
-import { start, selectMembers } from '../../api/groups/methods.js';
+import { start, selectMembers, approve, vote } from '../../api/groups/methods.js';
 
 export default class GroupPage extends React.Component {
   constructor(props) {
@@ -15,6 +15,8 @@ export default class GroupPage extends React.Component {
     this.restart = this.restart.bind(this);
     this.onRowSelection = this.onRowSelection.bind(this);
     this.selectMembers = this.selectMembers.bind(this);
+    this.approve = this.approve.bind(this);
+    this.vote = this.vote.bind(this);
   }
 
   start() {
@@ -36,7 +38,7 @@ export default class GroupPage extends React.Component {
   }
 
   onRowSelection(selectedRows) {
-    var result = selectedRows.slice(0);
+    let result = selectedRows.slice(0);
     if (result == 'none') {
         result = [];
     }
@@ -46,6 +48,26 @@ export default class GroupPage extends React.Component {
   selectMembers() {
     const groupId = this.props.group._id;
     selectMembers.call({ groupId: groupId, selectedMemberIndices: this.state.selectedMemberIndices }, err => {
+      if (err) {
+        alert(err.reason);
+      } else {
+        this.setState({ selectedMemberIndices: [] });
+      }
+    });
+  }
+
+  approve(approval) {
+    const groupId = this.props.group._id;
+    approve.call({ groupId: groupId, userId: Meteor.userId(), approval: approval }, err => {
+      if (err) {
+        alert(err.reason);
+      }
+    });
+  }
+
+  vote(success) {
+    const groupId = this.props.group._id;
+    vote.call({ groupId: groupId, userId: Meteor.userId(), success: success }, err => {
       if (err) {
         alert(err.reason);
       }
@@ -70,18 +92,25 @@ export default class GroupPage extends React.Component {
           }
         </div>
       );
+      const history = group.getMissionsHistory().map((s, i) => (
+        <div key={i}>Mission {i + 1}: {s == null ? 'Disapproved' : s ? 'Success' : 'Fail'}</div>
+      ));
       let status;
-      if (group.missions.length > 0) {
+      if (group.missions.length > 0 && group.getMissionsHistory().length < Groups.MISSIONS_COUNT) {
         let message;
-        if (group.lastMissionIsSelectingMembers()) {
+        if (group.isSelectingMembers()) {
           message = 'Leader is selecting team members';
-        } else if (group.lastMissionIsWaitingForApproval()) {
-          message = 'Waiting for approval';
-        } else {
-          message = 'Team members are going on';
+          if (group.hasLeader(Meteor.userId())) {
+            message += ` (Must select ${Groups.MISSIONS_MEMBERS_COUNT[group.players.length][group.missions.length - 1]} members)`;
+          }
+        } else if (group.isWaitingForApproval()) {
+          message = 'Waiting for players to approve the mission team members' + ' (' + group.getLastMission().approvals.map(a => a == null ? 'undecided' : a == true ? 'approval' : 'disapproval') + ')';
+        } else if (group.isWaitingForVote()) {
+          message = 'Team members are going on' + ' (' + group.getLastMission().successVotes.map(v => v == null ? 'undecided' : v == true ? 'success' : 'fail') + ')';
         }
         status = `Mission ${group.missions.length}: ${message}`;
       }
+      const selectable = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
       content = (
         <div>
           <RaisedButton primary={true} containerElement={<Link to="/"/>} linkButton={true} label="Home"/>
@@ -90,7 +119,7 @@ export default class GroupPage extends React.Component {
           {buttonStart}
           Players:
           <Table multiSelectable={true} onRowSelection={this.onRowSelection}>
-            <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
+            <TableHeader displaySelectAll={false} adjustForCheckbox={selectable}>
               <TableRow>
                 <TableHeaderColumn>Name</TableHeaderColumn>
                 <TableHeaderColumn>Part</TableHeaderColumn>
@@ -98,13 +127,18 @@ export default class GroupPage extends React.Component {
               </TableRow>
             </TableHeader>
             <TableBody deselectOnClickaway={false}>
-              {[...group.getPlayers().entries()].map(([i, player]) =>
-                <PlayerItem selected={group.lastMissionIsSelectingMembers() && this.state.selectedMemberIndices.indexOf(i) != -1} user={player.user} part={!group.isPlaying() || (Meteor.userId() != player.user._id && !group.hasSpy(Meteor.userId())) ? 'Unknown' : player.isSpy ? 'Spy' : 'Resistance'} role={group.lastMissionHasLeader(player.user._id) ? 'Leader' : group.lastMissionHasMember(player.user._id) ? 'Member' : ''} selectable={group.lastMissionIsSelectingMembers() && group.lastMissionHasLeader(Meteor.userId()) && Meteor.userId() != player.user._id} key={player.user._id}/>
+              {group.getPlayers().map((player, i) =>
+                <PlayerItem selected={group.isSelectingMembers() && this.state.selectedMemberIndices.indexOf(i) != -1} user={player.user} part={!group.isPlaying() || (Meteor.userId() != player.user._id && !group.hasSpy(Meteor.userId())) ? 'Unknown' : player.isSpy ? 'Spy' : 'Resistance'} role={group.hasLeader(player.user._id) ? group.hasMember(player.user._id) ? 'Leader & Member' : 'Leader' : group.hasMember(player.user._id) ? 'Member' : ''} selectable={selectable} key={player.user._id}/>
               )}
             </TableBody>
           </Table>
+          {history}
           {status}
-          {group.lastMissionIsSelectingMembers() && group.lastMissionHasLeader(Meteor.userId()) ? <RaisedButton label='Select members' onClick={this.selectMembers}></RaisedButton> : ''}
+          <div>
+            {selectable ? <RaisedButton label='Select members' onClick={this.selectMembers}></RaisedButton> : ''}
+            {group.isWaitingForApproval() ? <div><RaisedButton label='Approve' onClick={() => this.approve(true)}></RaisedButton><RaisedButton label='Disapprove' onClick={() => this.approve(false)}></RaisedButton></div> : '' }
+            {group.isWaitingForVote() && group.hasMember(Meteor.userId()) ? <div><RaisedButton label='Vote Success' onClick={() => this.vote(true)}></RaisedButton><RaisedButton label='Vote Fail' onClick={() => this.vote(false)}></RaisedButton></div> : '' }
+          </div>
         </div>
       );
     }
