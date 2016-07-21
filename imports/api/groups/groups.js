@@ -4,8 +4,8 @@ import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 
 // Number of players:   5   6   7   8   9   10
 
-// Resistance           3   4   4   5   6   6       |
-// Spies                2   2   3   3   3   4       | Number of Resistance Members & Government Spies
+// Good                 3   4   4   5   6   6       |
+// Evil                 2   2   3   3   3   4       | Number of Good players & Evil players
 
 // Mission 1            2   2   2   3   3   3       |
 // Mission 2            3   3   3   4   4   4       |
@@ -37,7 +37,7 @@ Groups.deny({
 
 PlayersSchema = new SimpleSchema({
   id: { type: String, regEx: SimpleSchema.RegEx.Id }, // Group player's id
-  isSpy: { type: Boolean, defaultValue: false }, // Whether group player is spy or not
+  role: { type: Number, defaultValue: 0 }, // Whether group player is good or evil
 });
 
 TeamsSchema = new SimpleSchema({
@@ -55,6 +55,7 @@ Groups.schema = new SimpleSchema({
   ownerId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Owner's id
   name: { type: String },
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
+  additionalRoles: { type: [Number], defaultValue: [] }, // Additional roles
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
 });
 
@@ -66,33 +67,37 @@ Groups.attachSchema(Groups.schema);
 Groups.publicFieldsWhenFindAll = {
   ownerId: 1,
   name: 1,
-  "players.id": 1,
-  "missions.length": 1,
+  'players.id': 1,
+  'missions.length': 1,
 };
 
 // TODO: Remove secret properties to keep them private
 Groups.publicFieldsWhenFindOne = {
   ownerId: 1,
   name: 1,
-  "players": 1,
-  "missions": 1,
+  players: 1,
+  additionalRoles: 1,
+  missions: 1,
 };
 
 Groups.helpers({
   getOwner() {
     return Meteor.users.findOne(this.ownerId);
   },
-  belongsTo(userId) {
+  hasOwner(userId) {
     return this.ownerId == userId;
   },
   getPlayers() {
-    return this.players.map(player => ({ user: Meteor.users.findOne(player.id), isSpy: player.isSpy }));
+    return this.players.map(player => ({ user: Meteor.users.findOne(player.id), role: player.role }));
+  },
+  getEvilPlayersCount() {
+    return Math.ceil(this.players.length / 3);
   },
   hasPlayer(userId) {
     return this.players.find(p => p.id == userId) != undefined;
   },
-  hasSpy(userId) {
-    return this.players.find(p => p.id == userId && p.isSpy) != undefined;
+  findPlayerRole(userId) {
+    return this.players.find(p => p.id == userId).role;
   },
   isPlaying() {
     return this.missions.length != 0
@@ -167,6 +172,19 @@ Groups.helpers({
 
 Groups.MIN_PLAYERS_COUNT = 5;
 Groups.MAX_PLAYERS_COUNT = 10;
+Groups.Roles = {
+  UNDECIDED: 0,
+  // Good
+  SERVANT: 1,         // Loyal servant of Arthur: only knows how many evil players exist, not who they are
+  MERLIN: 2,          // Knows who the evil players are
+  PERCIVAL: 3,        // Knows who Merlin is and is in a position to help protect Merlin's identity
+  // Evil
+  MINION: -1,         // Minion of Mordred: are made aware of each other without the good players knowing
+  ASSASSIN: -2,       // Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game
+  MORDRED: -3,        // Does not reveal his identity to Merlin, leaving Merlin in the dark
+  MORGANA: -4,        // Appears to be Merlin, revealing herself to Percival as Merlin
+  OBERON: -5,         // Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players
+};
 Groups.MISSIONS_COUNT = 5;
 Groups.MISSION_TEAMS_COUNT = 5;
 Groups.MISSIONS_MEMBERS_COUNT = {

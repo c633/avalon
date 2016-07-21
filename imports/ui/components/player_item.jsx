@@ -7,13 +7,13 @@ export default class PlayerItem extends React.Component {
   }
 
   render() {
-    const { selected, user, part, selectable, role, ...others } = this.props;
+    const { selected, selectable, user, role, part, ...others } = this.props;
     return (
       <TableRow selected={selected} {...others} selectable={selectable} style={Meteor.userId() == user._id ? { fontWeight: 'bold' } : {}}>
         {selectable ? others.children[0] : ''} {/* Explicitly render the checkbox passed down from TableBody */}
         <TableRowColumn>{user.username}</TableRowColumn>
-        <TableRowColumn>{part}</TableRowColumn>
         <TableRowColumn>{role}</TableRowColumn>
+        <TableRowColumn>{part}</TableRowColumn>
       </TableRow>
     );
   }
@@ -21,10 +21,10 @@ export default class PlayerItem extends React.Component {
 
 PlayerItem.propTypes = {
   selected: React.PropTypes.bool,
-  user: React.PropTypes.object,
-  part: React.PropTypes.string,
   selectable: React.PropTypes.bool,
+  user: React.PropTypes.object,
   role: React.PropTypes.string,
+  part: React.PropTypes.string,
 };
 
 PlayerItem.contextTypes = {

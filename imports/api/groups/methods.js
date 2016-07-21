@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import { Groups } from './groups.js';
+import { _ } from 'meteor/underscore';
 
 export const insert = new ValidatedMethod({
   name: 'groups.insert',
@@ -31,7 +32,7 @@ export const join = new ValidatedMethod({
       throw new Meteor.Error('groups.join.alreadyJoined', 'Already joined this group.');
     }
     Groups.update(groupId, {
-      $push: { players: { id: this.userId, isSpy: false } },
+      $push: { players: { id: this.userId, role: 0 } },
     });
   },
 });
@@ -67,7 +68,7 @@ export const start = new ValidatedMethod({
   }).validator(),
   run({ groupId, reset }) {
     const group = Groups.findOne(groupId);
-    if (!group.belongsTo(this.userId)) {
+    if (!group.hasOwner(this.userId)) {
       throw new Meteor.Error('groups.start.accessDenied', 'Don\'t have permission to start playing.');
     }
     Groups.update(groupId, {
@@ -76,18 +77,37 @@ export const start = new ValidatedMethod({
     if (!reset) {
       group.startNewMission();
       const playersCount = group.players.length;
-      let indices = Array.from(new Array(playersCount), (_, i) => i);
-      for (let _ of Array(Math.round(playersCount / 3)).keys()) {
-        group.players[indices.splice(Math.floor(Math.random() * indices.length), 1)[0]].isSpy = true;
-      }
+      const evilPlayersCount = group.getEvilPlayersCount();
+      let roles = group.additionalRoles;
+      roles = roles.concat([Groups.Roles.MERLIN, Groups.Roles.ASSASSIN]); // Required players
+      const servants = Array.from(Array(playersCount - evilPlayersCount - roles.filter(r => r > 0).length)).map(_ => Groups.Roles.SERVANT);
+      const minions = Array.from(Array(evilPlayersCount - roles.filter(r => r < 0).length)).map(_ => Groups.Roles.MINION);
+      _.shuffle(roles.concat(servants, minions)).forEach((r, i) => group.players[i].role = r);
       Groups.update(groupId, {
         $set: { players: group.players }
       });
     } else {
       Groups.update(groupId, {
-        $set: { players: group.players.map(player => ({ id: player.id, isSpy: false })) }
+        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })) }
       });
     }
+  },
+});
+
+export const selectRoles = new ValidatedMethod({
+  name: 'groups.selectRoles',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    selectedAdditionalRoles: { type: [Number] },
+  }).validator(),
+  run({ groupId, selectedAdditionalRoles }) {
+    const group = Groups.findOne(groupId);
+    if (selectedAdditionalRoles.filter(r => r < 0).length > group.getEvilPlayersCount() - 1) {
+      throw new Meteor.Error('groups.selectRoles.invalid', 'Invalid selected additional roles.');
+    }
+    Groups.update(groupId, {
+      $set: { additionalRoles: selectedAdditionalRoles }
+    });
   },
 });
 
