@@ -74,7 +74,7 @@ export const start = new ValidatedMethod({
       $set: { missions: [] },
     });
     if (!reset) {
-      group.startSelectingMembers();
+      group.startNewMission();
       const playersCount = group.players.length;
       let indices = Array.from(new Array(playersCount), (_, i) => i);
       for (let _ of Array(Math.round(playersCount / 3)).keys()) {
@@ -102,10 +102,10 @@ export const selectMembers = new ValidatedMethod({
     if (!group.isSelectedMembersValid(selectedMemberIndices)) {
       throw new Meteor.Error('groups.selectMembers.invalid', 'Invalid selected mission team members.');
     }
-    const lastMissionMemberIndices = {};
-    lastMissionMemberIndices[`missions.${group.missions.length - 1}.memberIndices`] = selectedMemberIndices;
+    const lastTeamMemberIndices = {};
+    lastTeamMemberIndices[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.memberIndices`] = selectedMemberIndices;
     Groups.update(groupId, {
-      $set: lastMissionMemberIndices
+      $set: lastTeamMemberIndices
     });
     group.startWaitingForApproval();
   },
@@ -120,13 +120,13 @@ export const approve = new ValidatedMethod({
   }).validator(),
   run({ groupId, userId, approval }) {
     let group = Groups.findOne(groupId);
-    const lastMissionApproval = {};
-    lastMissionApproval[`missions.${group.missions.length - 1}.approvals.${group.players.map(p => p.id).indexOf(userId)}`] = approval;
+    const lastTeamApproval = {};
+    lastTeamApproval[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.approvals.${group.players.map(p => p.id).indexOf(userId)}`] = approval;
     Groups.update(groupId, {
-      $set: lastMissionApproval
+      $set: lastTeamApproval
     });
     group = Groups.findOne(groupId); // Update local variable
-    if (group.isDisapproved()) {
+    if (group.isDenied()) {
       group.startSelectingMembers();
     } else if (!group.isWaitingForApproval()) {
       group.startWaitingForVote();
@@ -143,14 +143,14 @@ export const vote = new ValidatedMethod({
   }).validator(),
   run({ groupId, userId, success }) {
     let group = Groups.findOne(groupId);
-    const lastMissionSuccessVote = {};
-    lastMissionSuccessVote[`missions.${group.missions.length - 1}.successVotes.${group.getLastMission().memberIndices.indexOf(group.players.map(p => p.id).indexOf(userId))}`] = success;
+    const lastTeamSuccessVote = {};
+    lastTeamSuccessVote[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.successVotes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(userId))}`] = success;
     Groups.update(groupId, {
-      $set: lastMissionSuccessVote
+      $set: lastTeamSuccessVote
     });
     group = Groups.findOne(groupId); // Update local variable
     if (!group.isWaitingForVote()) {
-      group.startSelectingMembers();
+      group.startNewMission();
     }
   },
 });

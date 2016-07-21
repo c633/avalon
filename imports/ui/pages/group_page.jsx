@@ -92,23 +92,19 @@ export default class GroupPage extends React.Component {
           }
         </div>
       );
-      const history = group.getMissionsHistory().map((s, i) => (
-        <div key={i}>Mission {i + 1}: {s == null ? 'Disapproved' : s ? 'Success' : 'Fail'}</div>
+      const history = group.getMissionsHistory().map((m, i) => (
+        <div key={i}>Mission {i + 1}: {m.map(t => t === undefined ? 'Playing' : t == null ? 'Denied' : t ? 'Success' : 'Fail').join(', ')}</div>
       ));
       let status;
-      if (group.missions.length > 0 && group.getMissionsHistory().length < Groups.MISSIONS_COUNT) {
-        let message;
-        if (group.isSelectingMembers()) {
-          message = 'Leader is selecting team members';
-          if (group.hasLeader(Meteor.userId())) {
-            message += ` (Must select ${Groups.MISSIONS_MEMBERS_COUNT[group.players.length][group.missions.length - 1]} members)`;
-          }
-        } else if (group.isWaitingForApproval()) {
-          message = 'Waiting for players to approve the mission team members' + ' (' + group.getLastMission().approvals.map(a => a == null ? 'undecided' : a == true ? 'approval' : 'disapproval') + ')';
-        } else if (group.isWaitingForVote()) {
-          message = 'Team members are going on' + ' (' + group.getLastMission().successVotes.map(v => v == null ? 'undecided' : v == true ? 'success' : 'fail') + ')';
+      if (group.isSelectingMembers()) {
+        status = 'Leader is selecting team members';
+        if (group.hasLeader(Meteor.userId())) {
+          status += ` (Must select ${Groups.MISSIONS_MEMBERS_COUNT[group.players.length][group.missions.length - 1]} members)`;
         }
-        status = `Mission ${group.missions.length}: ${message}`;
+      } else if (group.isWaitingForApproval()) {
+        status = 'Waiting for players to approve the mission team members' + ' (' + group.getLastTeam().approvals.map(a => a == null ? 'undecided' : a == true ? 'approved' : 'denied') + ')';
+      } else if (group.isWaitingForVote()) {
+        status = 'Team members are going on' + ' (' + group.getLastTeam().successVotes.map(v => v == null ? 'undecided' : v == true ? 'success' : 'fail') + ')';
       }
       const selectable = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
       content = (
@@ -136,7 +132,7 @@ export default class GroupPage extends React.Component {
           {status}
           <div>
             {selectable ? <RaisedButton label='Select members' onClick={this.selectMembers}></RaisedButton> : ''}
-            {group.isWaitingForApproval() ? <div><RaisedButton label='Approve' onClick={() => this.approve(true)}></RaisedButton><RaisedButton label='Disapprove' onClick={() => this.approve(false)}></RaisedButton></div> : '' }
+            {group.isWaitingForApproval() ? <div><RaisedButton label='Approve' onClick={() => this.approve(true)}></RaisedButton><RaisedButton label='Deny' onClick={() => this.approve(false)}></RaisedButton></div> : '' }
             {group.isWaitingForVote() && group.hasMember(Meteor.userId()) ? <div><RaisedButton label='Vote Success' onClick={() => this.vote(true)}></RaisedButton><RaisedButton label='Vote Fail' onClick={() => this.vote(false)}></RaisedButton></div> : '' }
           </div>
         </div>

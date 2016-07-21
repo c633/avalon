@@ -5,11 +5,11 @@ import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 // Number of players:   5   6   7   8   9   10
 
 // Resistance           3   4   4   5   6   6       |
-// Spies	              2   2   3   3   3   4       | Number of Resistance Members & Government Spies
+// Spies                2   2   3   3   3   4       | Number of Resistance Members & Government Spies
 
 // Mission 1            2   2   2   3   3   3       |
 // Mission 2            3   3   3   4   4   4       |
-// Mission 3	          2   3   3   4   4   4       | Number of members required to be sent on each mission
+// Mission 3            2   4   3   4   4   4       | Number of members required to be sent on each mission
 // Mission 4            3   3   4*	5*  5*  5*      |
 // Mission 5            3   4   4   5   5   5       |
 
@@ -40,11 +40,15 @@ PlayersSchema = new SimpleSchema({
   isSpy: { type: Boolean, defaultValue: false }, // Whether group player is spy or not
 });
 
-MissionsSchema = new SimpleSchema({
-  // Leader's id is included in `players.id` with index corresponds to the index of this mission in `missions`
+TeamsSchema = new SimpleSchema({
+  // Index of leader's id which is included in `players.id`, corresponds to the index of this team in `missions.teams`
   memberIndices: { type: [Number], defaultValue: [] }, // Indices of players who were selected to be sent out on the mission, correspond to `players.id`
   approvals: { type: [Boolean], defaultValue: [] }, // Indicate players whether to approve the mission team make-up or not, with indices correspond to `players.id`
-  successVotes: { type: [Boolean], defaultValue: [] }, // Indicate members whether to vote for the mission to success or not, with indices correspond to `missions.memberIndices`
+  successVotes: { type: [Boolean], defaultValue: [] }, // Indicate members whether to vote for the mission to success or not, with indices correspond to `missions.teams.memberIndices`
+});
+
+MissionsSchema = new SimpleSchema({
+  teams: { type: [TeamsSchema], defaultValue: [] },
 });
 
 Groups.schema = new SimpleSchema({
@@ -93,63 +97,81 @@ Groups.helpers({
   isPlaying() {
     return this.missions.length != 0
   },
-  startSelectingMembers() {
+  getLastTeam() { // Force return `null` if missions list or teams list is empty (instead of `undefined`)
+    const lastMission = this.missions[this.missions.length - 1];
+    return (lastMission || null) && lastMission.teams[lastMission.teams.length - 1] || null;
+  },
+  getTeamsCount() {
+    return this.missions.reduce((c, m) => c + m.teams.length, 0);
+  },
+  startNewMission() {
     if (this.missions.length >= Groups.MISSIONS_COUNT) {
       return;
     }
+    const newMission = { teams: [] };
     Groups.update(this._id, {
-      $push: { missions: { leaderId: this.players[this.missions.length].id, memberIndices: [], approvals: [], successVotes: [] } }
+      $push: { missions: newMission }
+    });
+    this.missions.push(newMission); // Update local variable
+    this.startSelectingMembers();
+  },
+  startSelectingMembers() {
+    if (this.missions[this.missions.length - 1].teams.length >= Groups.MISSION_TEAMS_COUNT) {
+      return;
+    }
+    const newTeam = {};
+    newTeam[`missions.${this.missions.length - 1}.teams`] = { memberIndices: [], approvals: [], successVotes: [] };
+    Groups.update(this._id, {
+      $push: newTeam
     });
   },
   startWaitingForApproval() {
     const initialApprovals = {};
-    initialApprovals[`missions.${this.missions.length - 1}.approvals`] = Array.from(new Array(this.players.length), () => null);
+    initialApprovals[`missions.${this.missions.length - 1}.teams.${this.missions[this.missions.length - 1].teams.length - 1}.approvals`] = Array.from(new Array(this.players.length), () => null);
     Groups.update(this._id, {
       $set: initialApprovals
     });
   },
   startWaitingForVote() {
     const initialVotes = {};
-    initialVotes[`missions.${this.missions.length - 1}.successVotes`] = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), () => null);
+    initialVotes[`missions.${this.missions.length - 1}.teams.${this.missions[this.missions.length - 1].teams.length - 1}.successVotes`] = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), () => null);
     Groups.update(this._id, {
       $set: initialVotes
     });
   },
-  getLastMission() { // Force return `null` if missions list is empty (instead of `undefined`)
-    return this.missions[this.missions.length - 1] || null;
-  },
   hasLeader(userId) {
-    return this.missions.length > 0 ? this.players[this.missions.length - 1].id == userId : false;
+    return this.missions.length > 0 ? this.players[(this.getTeamsCount() - 1) % this.players.length].id == userId : false;
   },
   hasMember(userId) {
-    return this.getLastMission() != null && this.getLastMission().memberIndices.find(i => this.players[i].id == userId) != undefined;
+    return this.getLastTeam() != null && this.getLastTeam().memberIndices.find(i => this.players[i].id == userId) != undefined;
   },
   isSelectingMembers() {
-    return this.getLastMission() != null && this.getLastMission().memberIndices.length == 0;
+    return this.getLastTeam() != null && this.getLastTeam().memberIndices.length == 0;
   },
   isSelectedMembersValid(selectedMemberIndices) {
     return selectedMemberIndices.length != Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1] || selectedMemberIndices.find(i => i >= this.players.length) != undefined ? false : true;
   },
   isWaitingForApproval() {
-    return this.getLastMission() != null && this.getLastMission().approvals.indexOf(null) != -1;
+    return this.getLastTeam() != null && this.getLastTeam().approvals.indexOf(null) != -1;
   },
-  isDisapproved() {
-    return this.getLastMission() != null && this.getLastMission().approvals.indexOf(null) == -1 && this.getLastMission().approvals.filter(a => a == false).length >= this.getLastMission().approvals.filter(a => a == true).length;
+  isDenied() {
+    return this.getLastTeam() != null && this.getLastTeam().approvals.indexOf(null) == -1 && this.getLastTeam().approvals.filter(a => a == false).length >= this.getLastTeam().approvals.filter(a => a == true).length;
   },
   isWaitingForVote() {
-    return this.getLastMission() != null && this.getLastMission().successVotes.indexOf(null) != -1;
+    return this.getLastTeam() != null && this.getLastTeam().successVotes.indexOf(null) != -1;
   },
   getMissionsHistory() {
-    return this.missions.filter(m => !(m.memberIndices.length == 0 || m.approvals.indexOf(null) != -1 || m.successVotes.indexOf(null) != -1)).map((m, i) => m.approvals.filter(a => a == false).length >= m.approvals.filter(a => a == true).length ? null : m.successVotes.filter(a => a == false).length < (i == 3 && this.players.length >= 7 ? 2 : 1) ? true : false);
+    return this.missions.map((m, i) => m.teams.map(t => t.memberIndices.length == 0 || t.approvals.indexOf(null) != -1 || (t.successVotes.length != 0 && t.successVotes.indexOf(null) != -1) ? undefined : t.approvals.filter(a => a == false).length >= t.approvals.filter(a => a == true).length ? null : t.successVotes.filter(a => a == false).length < (i == 3 && this.players.length >= 7 ? 2 : 1) ? true : false));
   }
 });
 
 Groups.MIN_PLAYERS_COUNT = 5;
 Groups.MAX_PLAYERS_COUNT = 10;
 Groups.MISSIONS_COUNT = 5;
+Groups.MISSION_TEAMS_COUNT = 5;
 Groups.MISSIONS_MEMBERS_COUNT = {
   5: [2, 3, 2, 3, 3],
-  6: [2, 3, 3, 3, 4],
+  6: [2, 3, 4, 3, 4],
   7: [2, 3, 3, 4, 4],
   8: [3, 4, 4, 5, 5],
   9: [3, 4, 4, 5, 5],
