@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import Account from '../components/account';
+import UserMenu from '../components/user_menu';
 import Main from '../layouts/main';
+import GroupList from '../components/group_list.jsx';
 
 export default class Lobby extends Component {
   constructor(props) {
@@ -8,14 +9,22 @@ export default class Lobby extends Component {
   }
 
   render() {
-    const { user } = this.props;
-    const content = (
-      <Account user={user}/>
-    );
+    const { user, groups, loaded } = this.props;
+    let content;
+    if (loaded) {
+      content = (
+        <div>
+          <UserMenu user={user}/>
+          <GroupList groups={groups}/>
+        </div>
+      );
+    }
     return <Main content={content}/>;
   }
 }
 
 Lobby.propTypes = {
-  user: React.PropTypes.object,      // current meteor user
+  user: React.PropTypes.object,       // Current meteor user
+  groups: React.PropTypes.array,      // All groups
+  loaded: React.PropTypes.bool,
 };

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
-import { Accounts } from 'meteor/accounts-base';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import Main from '../layouts/main';
@@ -17,8 +16,8 @@ export default class AuthSignup extends Component {
       margin: 25,
     };
     const { errors } = this.state;
-    var usernameError = (errors['username'] || errors['reason']);
-    var passwordError = (errors['password'] || errors['reason']);
+    let usernameError = (errors['username'] || errors['reason']);
+    let passwordError = (errors['password'] || errors['reason']);
     usernameError = usernameError && (usernameError.toLowerCase().indexOf('user') > -1 ? usernameError : '');
     passwordError = passwordError && (passwordError.toLowerCase().indexOf('password') > -1 ? passwordError : '');
     const content = (
