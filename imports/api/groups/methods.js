@@ -13,6 +13,7 @@ export const insert = new ValidatedMethod({
     const group = {
       ownerId: this.userId,
       name: name,
+      guessMerlin: null,
     };
     return Groups.insert(group);
   },
@@ -172,5 +173,19 @@ export const vote = new ValidatedMethod({
     if (!group.isWaitingForVote()) {
       group.startNewMission();
     }
+  },
+});
+
+export const guess = new ValidatedMethod({
+  name: 'groups.guess',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    merlinIndex: { type: Number },
+  }).validator(),
+  run({ groupId, merlinIndex }) {
+    const group = Groups.findOne(groupId);
+    Groups.update(groupId, {
+      $set: { guessMerlin: group.players[merlinIndex].role == Groups.Roles.MERLIN }
+    });
   },
 });

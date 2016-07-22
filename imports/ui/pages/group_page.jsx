@@ -5,7 +5,7 @@ import { Table, TableHeader, TableHeaderColumn, TableBody, TableRow, TableRowCol
 import Main from '../layouts/main';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
 import PlayerItem from '../components/player_item.jsx';
-import { start, selectRoles, selectMembers, approve, vote } from '../../api/groups/methods.js';
+import { start, selectRoles, selectMembers, approve, vote, guess } from '../../api/groups/methods.js';
 
 export default class GroupPage extends React.Component {
   constructor(props) {
@@ -17,6 +17,7 @@ export default class GroupPage extends React.Component {
     this.onPlayerRowSelection = this.onPlayerRowSelection.bind(this);
     this.selectRoles = this.selectRoles.bind(this);
     this.selectMembers = this.selectMembers.bind(this);
+    this.guess = this.guess.bind(this);
     this.approve = this.approve.bind(this);
     this.vote = this.vote.bind(this);
   }
@@ -60,6 +61,17 @@ export default class GroupPage extends React.Component {
   selectMembers() {
     const groupId = this.props.group._id;
     selectMembers.call({ groupId: groupId, selectedMemberIndices: this.state.selectedMemberIndices }, err => {
+      if (err) {
+        alert(err.reason);
+      } else {
+        this.setState({ selectedMemberIndices: [] });
+      }
+    });
+  }
+
+  guess() {
+    const groupId = this.props.group._id;
+    guess.call({ groupId: groupId, merlinIndex: this.state.selectedMemberIndices[0] }, err => {
       if (err) {
         alert(err.reason);
       } else {
@@ -137,18 +149,23 @@ export default class GroupPage extends React.Component {
       const history = group.getMissionsHistory().map((m, i) => (
         <div key={i}>Mission {i + 1}: {m.map(t => t === undefined ? 'Playing' : t == null ? 'Denied' : t ? 'Success' : 'Fail').join(', ')}</div>
       ));
-      let status;
+      let situation;
       if (group.isSelectingMembers()) {
-        status = 'Leader is selecting team members';
+        situation = 'Leader is selecting team members';
         if (group.hasLeader(Meteor.userId())) {
-          status += ` (Must select ${Groups.MISSIONS_MEMBERS_COUNT[group.players.length][group.missions.length - 1]} members)`;
+          situation += ` (Must select ${Groups.MISSIONS_MEMBERS_COUNT[group.players.length][group.missions.length - 1]} members)`;
         }
       } else if (group.isWaitingForApproval()) {
-        status = 'Waiting for players to approve the mission team members' + ' (' + group.getLastTeam().approvals.map(a => a == null ? 'undecided' : a == true ? 'approved' : 'denied') + ')';
+        situation = 'Waiting for players to approve the mission team members';
       } else if (group.isWaitingForVote()) {
-        status = 'Team members are going on' + ' (' + group.getLastTeam().successVotes.map(v => v == null ? 'undecided' : v == true ? 'success' : 'fail') + ')';
+        situation = 'Waiting for team members to vote for the mission success or fail';
+      } else if (group.isWaitingForGuessing()) {
+        situation = 'Waiting for Assassin to guess Merlin\'s identity';
+      } else if (group.isPlaying()) {
+        situation = group.getResult() ? 'Good players win' : 'Evil players win';
       }
-      const selectable = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
+      const isGuessing = group.isWaitingForGuessing() && group.findPlayerRole(Meteor.userId()) == Groups.Roles.ASSASSIN;
+      const selectable = group.isSelectingMembers() && group.hasLeader(Meteor.userId()) || isGuessing;
       content = (
         <div>
           <RaisedButton primary={true} containerElement={<Link to="/"/>} linkButton={true} label="Home"/>
@@ -157,58 +174,70 @@ export default class GroupPage extends React.Component {
           {buttonStart}
           {tableAdditionalRoles}
           Players:
-          <Table multiSelectable={true} onRowSelection={this.onPlayerRowSelection}>
+          <Table multiSelectable={!isGuessing} onRowSelection={this.onPlayerRowSelection}>
             <TableHeader displaySelectAll={false} adjustForCheckbox={selectable}>
               <TableRow>
                 <TableHeaderColumn>Name</TableHeaderColumn>
                 <TableHeaderColumn>Role</TableHeaderColumn>
                 <TableHeaderColumn>Part</TableHeaderColumn>
+                <TableHeaderColumn>Status</TableHeaderColumn>
               </TableRow>
             </TableHeader>
             <TableBody deselectOnClickaway={false}>
               {group.getPlayers().map((player, i) => {
+                const otherPlayer = Meteor.userId() != player.user._id;
                 let role;
+                let side = null;
                 if (player.role == Groups.Roles.UNDECIDED) {
                   role = 'Undecided';
                 } else {
-                  const otherPlayer = Meteor.userId() != player.user._id;
                   switch (group.findPlayerRole(Meteor.userId())) {
                   case Groups.Roles.SERVANT:
-                    role = otherPlayer ? 'Unknown' : 'Servant';
+                    [role, side] = otherPlayer ? ['Unknown', null] : ['Servant', true];
                     break;
                   case Groups.Roles.MERLIN:
-                    role = otherPlayer ? player.role > 0 || player.role == Groups.Roles.MORDRED ? 'Good' : 'Evil' : 'Merlin';
+                    [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.MORDRED ? ['Good', true] : ['Evil', false] : ['Merlin', true];
                     break;
                   case Groups.Roles.PERCIVAL:
-                    role = otherPlayer ? player.role == Groups.Roles.MERLIN || player.role == Groups.Roles.MORGANA ? 'Merlin' : 'Unknown' : 'Percival';
+                    [role, side] = otherPlayer ? player.role == Groups.Roles.MERLIN || player.role == Groups.Roles.MORGANA ? ['Merlin', true] : ['Unknown', null] : ['Percival', true];
                     break;
                   case Groups.Roles.MINION:
-                    role = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? 'Good' : 'Evil' : 'Minion';
+                    [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Minion', false];
                     break;
                   case Groups.Roles.ASSASSIN:
-                    role = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? 'Good' : 'Evil' : 'Assassin';
+                    [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Assassin', false];
                     break;
                   case Groups.Roles.MORDRED:
-                    role = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? 'Good' : 'Evil' : 'Mordred';
+                    [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Mordred', false];
                     break;
                   case Groups.Roles.MORGANA:
-                    role = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? 'Good' : 'Evil' : 'Morgana';
+                    [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Morgana', false];
                     break;
                   case Groups.Roles.OBERON:
-                    role = otherPlayer ? 'Unknown' : 'Oberon';
+                    [role, side] = otherPlayer ? ['Unknown', null] : ['Oberon', false];
                     break;
                   }
                 }
-                return <PlayerItem selected={group.isSelectingMembers() && this.state.selectedMemberIndices.indexOf(i) != -1} selectable={selectable} user={player.user} role={role} part={group.hasLeader(player.user._id) ? group.hasMember(player.user._id) ? 'Leader & Member' : 'Leader' : group.hasMember(player.user._id) ? 'Member' : ''} key={player.user._id}/>
+                let status;
+                if (group.isWaitingForApproval()) {
+                  const approval = group.getLastTeam().approvals[i];
+                  status = approval == null ? 'Undecided' : approval ? 'Approved' : 'Denied';
+                }
+                if (group.isWaitingForVote()) {
+                  const vote = group.getLastTeam().successVotes[group.getLastTeam().memberIndices.indexOf(i)];
+                  status = vote === undefined ? '' : otherPlayer ? 'Going on mission' : vote == null ? 'Undecided' : vote ? 'Voted Success' : 'Voted Fail';
+                }
+                return <PlayerItem selected={(group.isSelectingMembers() || group.isWaitingForGuessing()) && this.state.selectedMemberIndices.indexOf(i) != -1} selectable={selectable} user={player.user} role={role} side={side} part={group.hasLeader(player.user._id) ? group.hasMember(player.user._id) ? 'Leader & Member' : 'Leader' : group.hasMember(player.user._id) ? 'Member' : ''} status={status} key={player.user._id}/>
               })}
             </TableBody>
           </Table>
           {history}
-          {status}
+          {situation}
           <div>
-            {selectable ? <RaisedButton label='Select members' onClick={this.selectMembers}></RaisedButton> : ''}
+            {selectable && !isGuessing ? <RaisedButton label='Select members' onClick={this.selectMembers}></RaisedButton> : ''}
             {group.isWaitingForApproval() ? <div><RaisedButton label='Approve' onClick={() => this.approve(true)}></RaisedButton><RaisedButton label='Deny' onClick={() => this.approve(false)}></RaisedButton></div> : '' }
-            {group.isWaitingForVote() && group.hasMember(Meteor.userId()) ? <div><RaisedButton label='Vote Success' onClick={() => this.vote(true)}></RaisedButton><RaisedButton label='Vote Fail' onClick={() => this.vote(false)}></RaisedButton></div> : '' }
+            {group.isWaitingForVote() && group.hasMember(Meteor.userId()) && group.findPlayerRole(Meteor.userId()) < 0 ? <div><RaisedButton label='Vote Success' onClick={() => this.vote(true)}></RaisedButton><RaisedButton label='Vote Fail' onClick={() => this.vote(false)}></RaisedButton></div> : '' }
+            {isGuessing ? <div><RaisedButton label='Guess Merlin' onClick={this.guess}></RaisedButton></div> : '' }
           </div>
         </div>
       );

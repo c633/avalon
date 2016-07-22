@@ -57,6 +57,7 @@ Groups.schema = new SimpleSchema({
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
   additionalRoles: { type: [Number], defaultValue: [] }, // Additional roles
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
+  guessMerlin: { type: Boolean, optional: true, defaultValue: null }, // Indicate whether Assassin correctly guesses Merlin's identity or not
 });
 
 Groups.attachSchema(Groups.schema);
@@ -78,6 +79,7 @@ Groups.publicFieldsWhenFindOne = {
   players: 1,
   additionalRoles: 1,
   missions: 1,
+  guessMerlin: 1,
 };
 
 Groups.helpers({
@@ -110,7 +112,8 @@ Groups.helpers({
     return this.missions.reduce((c, m) => c + m.teams.length, 0);
   },
   startNewMission() {
-    if (this.missions.length >= Groups.MISSIONS_COUNT) {
+    const missionsHistory = this.getMissionsHistory().map(m => m[m.length - 1]);
+    if (missionsHistory.filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN || missionsHistory.filter(m => !m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
       return;
     }
     const newMission = { teams: [] };
@@ -138,11 +141,17 @@ Groups.helpers({
     });
   },
   startWaitingForVote() {
+    const lastMission = this.missions[this.missions.length - 1];
     const initialVotes = {};
-    initialVotes[`missions.${this.missions.length - 1}.teams.${this.missions[this.missions.length - 1].teams.length - 1}.successVotes`] = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), () => null);
+    const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role > 0 ? true : null);
+    initialVotes[`missions.${this.missions.length - 1}.teams.${lastMission.teams.length - 1}.successVotes`] = successVotes;
     Groups.update(this._id, {
       $set: initialVotes
     });
+    this.getLastTeam().successVotes = successVotes; // Update local variable
+    if (!this.isWaitingForVote()) {
+      this.startNewMission();
+    }
   },
   hasLeader(userId) {
     return this.missions.length > 0 ? this.players[(this.getTeamsCount() - 1) % this.players.length].id == userId : false;
@@ -165,9 +174,15 @@ Groups.helpers({
   isWaitingForVote() {
     return this.getLastTeam() != null && this.getLastTeam().successVotes.indexOf(null) != -1;
   },
+  isWaitingForGuessing() {
+    return this.getMissionsHistory().map(m => m[m.length - 1]).filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN && this.guessMerlin == null;
+  },
   getMissionsHistory() {
     return this.missions.map((m, i) => m.teams.map(t => t.memberIndices.length == 0 || t.approvals.indexOf(null) != -1 || (t.successVotes.length != 0 && t.successVotes.indexOf(null) != -1) ? undefined : t.approvals.filter(a => a == false).length >= t.approvals.filter(a => a == true).length ? null : t.successVotes.filter(a => a == false).length < (i == 3 && this.players.length >= 7 ? 2 : 1) ? true : false));
-  }
+  },
+  getResult() {
+    return this.guessMerlin == null || this.guessMerlin ? false : true;
+  },
 });
 
 Groups.MIN_PLAYERS_COUNT = 5;
@@ -186,6 +201,7 @@ Groups.Roles = {
   OBERON: -5,         // Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players
 };
 Groups.MISSIONS_COUNT = 5;
+Groups.MISSIONS_COUNT_TO_WIN = 3;
 Groups.MISSION_TEAMS_COUNT = 5;
 Groups.MISSIONS_MEMBERS_COUNT = {
   5: [2, 3, 2, 3, 3],

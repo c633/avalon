@@ -7,13 +7,20 @@ export default class PlayerItem extends React.Component {
   }
 
   render() {
-    const { selected, selectable, user, role, part, ...others } = this.props;
+    const { selected, selectable, user, role, side, part, status, ...others } = this.props;
+    const style = {};
+    if (Meteor.userId() == user._id) {
+      style['fontWeight'] = 'bold';
+      style['fontStyle'] = 'italic';
+    }
+    style['color'] = side == null ? 'black' : side ? 'blue' : 'red';
     return (
-      <TableRow selected={selected} {...others} selectable={selectable} style={Meteor.userId() == user._id ? { fontWeight: 'bold' } : {}}>
+      <TableRow selected={selected} {...others} selectable={selectable} style={style}>
         {selectable ? others.children[0] : ''} {/* Explicitly render the checkbox passed down from TableBody */}
         <TableRowColumn>{user.username}</TableRowColumn>
         <TableRowColumn>{role}</TableRowColumn>
         <TableRowColumn>{part}</TableRowColumn>
+        <TableRowColumn>{status}</TableRowColumn>
       </TableRow>
     );
   }
@@ -24,7 +31,9 @@ PlayerItem.propTypes = {
   selectable: React.PropTypes.bool,
   user: React.PropTypes.object,
   role: React.PropTypes.string,
+  side: React.PropTypes.bool,
   part: React.PropTypes.string,
+  status: React.PropTypes.string,
 };
 
 PlayerItem.contextTypes = {
