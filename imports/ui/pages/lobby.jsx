@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import UserMenu from '../components/user_menu';
-import Main from '../layouts/main';
+import App from '../layouts/app';
 import GroupList from '../components/group_list.jsx';
 
 export default class Lobby extends Component {
@@ -19,7 +19,7 @@ export default class Lobby extends Component {
         </div>
       );
     }
-    return <Main content={content}/>;
+    return <App content={content}/>;
   }
 }
 

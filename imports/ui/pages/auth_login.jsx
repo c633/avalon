@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
-import Main from '../layouts/main';
+import App from '../layouts/app';
  
 export default class AuthLogin extends Component {
   constructor(props) {
@@ -31,7 +31,7 @@ export default class AuthLogin extends Component {
         <RaisedButton primary={true} containerElement={<Link to="/"/>} linkButton={true} label="Home" style={style}/>
       </div>
     );
-    return <Main content={content}/>;
+    return <App content={content}/>;
   }
 
   login(event) {

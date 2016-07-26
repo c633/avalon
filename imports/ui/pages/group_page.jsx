@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Table, TableHeader, TableHeaderColumn, TableBody, TableRow, TableRowColumn } from 'material-ui/Table';
-import Main from '../layouts/main';
+import App from '../layouts/app';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
 import PlayerItem from '../components/player_item.jsx';
 import { start, selectRoles, selectMembers, approve, vote, guess } from '../../api/groups/methods.js';
@@ -242,7 +242,7 @@ export default class GroupPage extends React.Component {
         </div>
       );
     }
-    return <Main content={content}/>;
+    return <App content={content}/>;
   }
 }
 

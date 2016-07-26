@@ -19,6 +19,8 @@ ecmascript              # Enable ECMAScript2015+ syntax in app code
 
 # Ui
 react-meteor-data
+twbs:bootstrap
+fortawesome:fontawesome
 
 # Accounts
 accounts-base
