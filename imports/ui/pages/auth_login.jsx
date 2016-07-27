@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
-import App from '../layouts/app';
  
 export default class AuthLogin extends Component {
   constructor(props) {
@@ -15,7 +14,7 @@ export default class AuthLogin extends Component {
     let passwordError = (errors['password'] || errors['reason']);
     usernameError = usernameError && (usernameError.toLowerCase().indexOf('user') > -1 ? usernameError : '');
     passwordError = passwordError && (passwordError.toLowerCase().indexOf('password') > -1 ? passwordError : '');
-    const content = (
+    return (
       <div className="login_wrapper">
         <div className="animate form login_form">
           <section className="login_content">
@@ -30,7 +29,7 @@ export default class AuthLogin extends Component {
                 <input type="password" className="form-control" placeholder="Password" ref="password" name="password" required=""/>
               </div>
               <div>
-                <button type="submit" className="btn btn-default submit" href="index.html">Login</button>
+                <button type="submit" className="btn btn-default submit">Login</button>
               </div>
               <div className="clearfix"></div>
               <div className="separator">
@@ -49,7 +48,6 @@ export default class AuthLogin extends Component {
         </div>
       </div>
     );
-    return <App content={content}/>;
   }
 
   login(event) {

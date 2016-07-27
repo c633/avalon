@@ -2,18 +2,27 @@ import React from 'react';
 import Navbar from './navbar';
 import Footer from './footer';
 
-const App = ({user, content}) => (
-  <div>
-    <Navbar user={user}/>
-    <div className="container">
-      {content}
-    </div>
-    <Footer/>
-  </div>
-);
+export default class App extends React.Component {
+
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    const { user, children } = this.props;
+    return (
+      <div>
+        <Navbar user={user}/>
+        <div className="container">
+          {children}
+        </div>
+        <Footer/>
+      </div>
+    );
+  }
+}
 
 App.propTypes = {
-  content: React.PropTypes.element,
+  user: React.PropTypes.object,
+  children: React.PropTypes.element,
 };
-
-export default App;

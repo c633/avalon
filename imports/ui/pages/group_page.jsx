@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import AppCanvas from 'material-ui/internal/AppCanvas';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Table, TableHeader, TableHeaderColumn, TableBody, TableRow, TableRowColumn } from 'material-ui/Table';
-import App from '../layouts/app';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
 import PlayerItem from '../components/player_item.jsx';
 import { start, selectRoles, selectMembers, approve, vote, guess } from '../../api/groups/methods.js';
@@ -100,7 +102,7 @@ export default class GroupPage extends React.Component {
 
   render() {
     const { group, loaded } = this.props;
-    let content;
+    let content = null;
     if (loaded) {
       let tableAdditionalRoles;
       if (group.hasOwner(Meteor.userId()) && !group.isPlaying()) {
@@ -167,8 +169,9 @@ export default class GroupPage extends React.Component {
       const isGuessing = group.isWaitingForGuessing() && group.findPlayerRole(Meteor.userId()) == Groups.Roles.ASSASSIN;
       const selectable = group.isSelectingMembers() && group.hasLeader(Meteor.userId()) || isGuessing;
       content = (
+        <MuiThemeProvider muiTheme={getMuiTheme()}>
+        <AppCanvas>
         <div>
-          <RaisedButton primary={true} containerElement={<Link to="/"/>} linkButton={true} label="Home"/>
           <div>Group's name: {group.name}</div>
           <div>Owner: {group.getOwner().username}</div>
           {buttonStart}
@@ -240,9 +243,11 @@ export default class GroupPage extends React.Component {
             {isGuessing ? <div><RaisedButton label='Guess Merlin' onClick={this.guess}></RaisedButton></div> : '' }
           </div>
         </div>
+      </AppCanvas>
+      </MuiThemeProvider>
       );
     }
-    return <App content={content}/>;
+    return content;
   }
 }
 

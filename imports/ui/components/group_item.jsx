@@ -59,7 +59,7 @@ export default class GroupItem extends React.Component {
               <span className="label label-default">Playing</span> :
               playersCount >= Groups.MIN_PLAYERS_COUNT ? 
                 <span className="label label-warning">Ready</span> :
-                <span className="label label-primary">Waiting for players</span>
+                <span className="label label-primary">Waiting for more players</span>
           }
         </td>
         <td>

@@ -1,7 +1,4 @@
 import React from 'react';
-import TextField from 'material-ui/TextField';
-import RaisedButton from 'material-ui/RaisedButton';
-import { Table, TableHeader, TableHeaderColumn, TableBody, TableRow } from 'material-ui/Table';
 import { insert } from '../../api/groups/methods.js';
 import GroupItem from './group_item.jsx';
 
@@ -14,7 +11,7 @@ export default class GroupList extends React.Component {
   createGroup(event) {
     event.preventDefault();
     const { router } = this.context;
-    const groupId = insert.call({ name: this.refs.name.getValue() }, err => {
+    const groupId = insert.call({ name: this.refs.name.value }, err => {
       if (err) {
         alert(err.reason);
       } else {
@@ -28,10 +25,17 @@ export default class GroupList extends React.Component {
     let formCreateGroup;
     if (!!Meteor.userId()) { // Render form for creating new 'Group' if user has already logged in
       formCreateGroup = (
-        <div>
-          <form onSubmit={this.createGroup}>
-            <TextField hintText="Name" ref="name" name="name"/>
-            <RaisedButton primary={true} label="Create new group" type="submit"/>
+        <div className="x_content">
+          <br/>
+          <form data-parsley-validate className="form-horizontal form-label-left" onSubmit={this.createGroup}>
+            <div className="form-group">
+              <label className="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Group Name <span className="required">*</span>
+              </label>
+              <div className="col-md-6 col-sm-6 col-xs-12">
+                <input type="text" ref="name" name="name" required="required" className="form-control col-md-7 col-xs-12"/>
+              </div>
+              <button type="submit" className="btn btn-success">Create new group</button>
+            </div>
           </form>
         </div>
       ); 
@@ -40,6 +44,7 @@ export default class GroupList extends React.Component {
       <div className="row">
         <div className="col-md-12">
           <div className="x_panel">
+            {formCreateGroup}
             <div className="x_title">
               <h2>Groups</h2>
               <div className="clearfix"></div>
