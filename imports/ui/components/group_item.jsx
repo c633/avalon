@@ -1,7 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router';
-import RaisedButton from 'material-ui/RaisedButton';
-import { TableRow, TableRowColumn } from 'material-ui/Table';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
 import { join, leave } from '../../api/groups/methods.js';
 
@@ -42,30 +39,41 @@ export default class GroupItem extends React.Component {
     const joined = group.hasPlayer(Meteor.userId());
     const isPlaying = group.isPlaying();
     const joinable = !joined && !isPlaying;
-    const linkGroupName = (
-      <TableRowColumn>
-        {group.name}
-        {
-          joined ? 
-          <Link to={`/groups/${group._id}`} title={group.name} style={{ marginLeft: '10px' }}>
-            Visit group
-          </Link> : ''
-        }
-      </TableRowColumn>
-    );
-    const buttonJoinLeaveGroup = !!Meteor.userId() && (joined || playersCount < Groups.MAX_PLAYERS_COUNT) && !isPlaying ? (
-      <TableRowColumn>
-        <RaisedButton primary={joinable} secondary={!joinable} label={joinable ? 'Join' : 'Leave'} onClick={joinable ? this.joinGroup : this.leaveGroup}></RaisedButton>
-      </TableRowColumn>
-    ) : (<TableRowColumn></TableRowColumn>);
     return (
-      <TableRow selectable={false}>
-        {linkGroupName}
-        <TableRowColumn>{group.getOwner().username}</TableRowColumn>
-        <TableRowColumn>{playersCount}</TableRowColumn>
-        <TableRowColumn>{group.isPlaying() ? 'Playing' : playersCount >= Groups.MIN_PLAYERS_COUNT ? 'Ready' : 'Waiting for players'}</TableRowColumn>
-        {buttonJoinLeaveGroup}
-      </TableRow>
+      <tr>
+        <td>
+          <a>{group.name}</a>
+          <br/>
+          <small>Owner: {group.getOwner().username}</small>
+        </td>
+        <td>
+          <ul className="list-inline">
+            {group.getPlayers().map(p =>
+              <li key={p.user._id}><img src="images/avatar.png" className="avatar" alt="Avatar"/></li>
+            )}
+          </ul>
+        </td>
+        <td>
+          {
+            group.isPlaying() ?
+              <span className="label label-default">Playing</span> :
+              playersCount >= Groups.MIN_PLAYERS_COUNT ? 
+                <span className="label label-warning">Ready</span> :
+                <span className="label label-primary">Waiting for players</span>
+          }
+        </td>
+        <td>
+          {
+            !!Meteor.userId() && (joined || playersCount < Groups.MAX_PLAYERS_COUNT) && !isPlaying ?
+              joinable ?
+                <a className="btn btn-sm btn-success" onClick={this.joinGroup}><i className="fa fa-sign-in"></i> Join </a> :
+                <a className="btn btn-sm btn-danger" onClick={this.leaveGroup}><i className="fa fa-sign-out"></i> Leave </a> : ''
+          }
+          {
+            joined ? <a href={`/groups/${group._id}`} className="btn btn-sm btn-info" ><i className="fa fa-group"></i> Go to </a> : ''
+          }
+        </td>
+      </tr>
     );
   }
 

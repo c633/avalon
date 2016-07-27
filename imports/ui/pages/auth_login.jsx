@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
-import TextField from 'material-ui/TextField';
-import RaisedButton from 'material-ui/RaisedButton';
 import App from '../layouts/app';
  
 export default class AuthLogin extends Component {
@@ -12,23 +10,43 @@ export default class AuthLogin extends Component {
   }
 
   render() {
-    const style = {
-      margin: 25,
-    };
     const { errors } = this.state;
     let usernameError = (errors['username'] || errors['reason']);
     let passwordError = (errors['password'] || errors['reason']);
     usernameError = usernameError && (usernameError.toLowerCase().indexOf('user') > -1 ? usernameError : '');
     passwordError = passwordError && (passwordError.toLowerCase().indexOf('password') > -1 ? passwordError : '');
     const content = (
-      <div style={style}>
-        <form onSubmit={this.login}>
-          <TextField hintText="User name" ref="username" name="username" errorText={usernameError} style={style}/>
-          <TextField hintText="Password" ref="password" name="password" errorText={passwordError} type="password" style={style}/>
-          <RaisedButton primary={true} label="Login" type="submit" style={style}/>
-        </form>
-        <RaisedButton primary={true} containerElement={<Link to="/signup"/>} linkButton={true} label="Signup" style={style}/>
-        <RaisedButton primary={true} containerElement={<Link to="/"/>} linkButton={true} label="Home" style={style}/>
+      <div className="login_wrapper">
+        <div className="animate form login_form">
+          <section className="login_content">
+            <form onSubmit={this.login}>
+              <h1>Login</h1>
+              <div className={usernameError ? 'avalon-error' : ''}>
+                <span>{usernameError}</span>
+                <input type="text" className="form-control" placeholder="Username" ref="username" name="username" required=""/>
+              </div>
+              <div className={passwordError ? 'avalon-error' : ''}>
+                <span>{passwordError}</span>
+                <input type="password" className="form-control" placeholder="Password" ref="password" name="password" required=""/>
+              </div>
+              <div>
+                <button type="submit" className="btn btn-default submit" href="index.html">Login</button>
+              </div>
+              <div className="clearfix"></div>
+              <div className="separator">
+                <p className="change_link">New to site?
+                  <a href="/signup" className="to_register"> Create Account </a>
+                </p>
+                <div className="clearfix"></div>
+                <br />
+                <div>
+                  <h1><i className="fa fa-paw"></i> Avalon game</h1>
+                  <p>©2016 All Rights Reserved.</p>
+                </div>
+              </div>
+            </form>
+          </section>
+        </div>
       </div>
     );
     return <App content={content}/>;
@@ -36,8 +54,8 @@ export default class AuthLogin extends Component {
 
   login(event) {
     event.preventDefault();
-    const username = this.refs.username.getValue();
-    const password = this.refs.password.getValue();
+    const username = this.refs.username.value;
+    const password = this.refs.password.value;
     const errors = {};
 
     if (!username) {

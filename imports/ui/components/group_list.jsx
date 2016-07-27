@@ -37,25 +37,30 @@ export default class GroupList extends React.Component {
       ); 
     }
     return (
-      <div>
-        {formCreateGroup}
-        <div>
-          <Table>
-            <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
-              <TableRow>
-                <TableHeaderColumn>Name</TableHeaderColumn>
-                <TableHeaderColumn>Owner</TableHeaderColumn>
-                <TableHeaderColumn>Number of players</TableHeaderColumn>
-                <TableHeaderColumn>Status</TableHeaderColumn>
-                <TableHeaderColumn></TableHeaderColumn>
-              </TableRow>
-            </TableHeader>
-            <TableBody displayRowCheckbox={false}>
-              {groups.map(group =>
-                <GroupItem group={group} key={group._id}/>
-              )}
-            </TableBody>
-          </Table>
+      <div className="row">
+        <div className="col-md-12">
+          <div className="x_panel">
+            <div className="x_title">
+              <h2>Groups</h2>
+              <div className="clearfix"></div>
+            </div>
+            <div className="x_content">
+              <p>Simple table with group listing with members, status and options</p>
+              <table className="table table-striped projects">
+                <thead>
+                  <tr>
+                    <th style={{ width: '20%' }}>Group</th>
+                    <th>Players</th>
+                    <th>Status</th>
+                    <th style={{ width: '20%' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groups.map(g => <GroupItem group={g} key={g._id}/>)}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     );

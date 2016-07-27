@@ -1,3 +1,33 @@
+/* Override */
+
 footer {
   margin-left: 0px;
+}
+
+body {
+  background: #F7F7F7;
+}
+
+.container {
+  padding: 15px;
+}
+
+/* Modified */
+
+.login_content span {
+  float: left;
+}
+
+/* Custom */
+
+.avalon-logo {
+  height: 40px;
+  width: 40px;
+  margin: -10px 0px 10px;
+}
+
+.avalon-error,
+.avalon-error .form-control {
+  color: #aa0000 !important;
+  border-color: #a94442 !important;
 }
