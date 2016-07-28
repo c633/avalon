@@ -1,8 +1,8 @@
 import React from 'react';
 import { insert } from '../../api/groups/methods.js';
-import GroupItem from './group_item.jsx';
+import GroupRow from './group_row.jsx';
 
-export default class GroupList extends React.Component {
+export default class GroupTable extends React.Component {
   constructor(props) {
     super(props);
     this.createGroup = this.createGroup.bind(this);
@@ -29,12 +29,12 @@ export default class GroupList extends React.Component {
           <br/>
           <form data-parsley-validate className="form-horizontal form-label-left" onSubmit={this.createGroup}>
             <div className="form-group">
-              <label className="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Group Name <span className="required">*</span>
+              <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Group Name <span className="required">*</span>
               </label>
               <div className="col-md-6 col-sm-6 col-xs-12">
                 <input type="text" ref="name" name="name" required="required" className="form-control col-md-7 col-xs-12"/>
               </div>
-              <button type="submit" className="btn btn-success">Create new group</button>
+              <button type="submit" className="btn btn-default">Create new group</button>
             </div>
           </form>
         </div>
@@ -61,7 +61,7 @@ export default class GroupList extends React.Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {groups.map(g => <GroupItem group={g} key={g._id}/>)}
+                  {groups.map(g => <GroupRow group={g} key={g._id}/>)}
                 </tbody>
               </table>
             </div>
@@ -72,10 +72,10 @@ export default class GroupList extends React.Component {
   }
 }
 
-GroupList.propTypes = {
+GroupTable.propTypes = {
   groups: React.PropTypes.array,
 };
 
-GroupList.contextTypes = {
+GroupTable.contextTypes = {
   router: React.PropTypes.object,
 };

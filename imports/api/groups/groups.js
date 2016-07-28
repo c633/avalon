@@ -143,7 +143,7 @@ Groups.helpers({
   startWaitingForVote() {
     const lastMission = this.missions[this.missions.length - 1];
     const initialVotes = {};
-    const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role > 0 ? true : null);
+    const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role > 0 ? null : null);
     initialVotes[`missions.${this.missions.length - 1}.teams.${lastMission.teams.length - 1}.successVotes`] = successVotes;
     Groups.update(this._id, {
       $set: initialVotes
@@ -152,6 +152,9 @@ Groups.helpers({
     if (!this.isWaitingForVote()) {
       this.startNewMission();
     }
+  },
+  getLeader() {
+    return this.missions.length > 0 ? Meteor.users.findOne(this.players[(this.getTeamsCount() - 1) % this.players.length].id) : null;
   },
   hasLeader(userId) {
     return this.missions.length > 0 ? this.players[(this.getTeamsCount() - 1) % this.players.length].id == userId : false;
@@ -199,6 +202,13 @@ Groups.Roles = {
   MORDRED: -3,        // Does not reveal his identity to Merlin, leaving Merlin in the dark
   MORGANA: -4,        // Appears to be Merlin, revealing herself to Percival as Merlin
   OBERON: -5,         // Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players
+};
+Groups.RoleNames = () => {
+  var names = {};
+  for(var role in Groups.Roles){
+    names[Groups.Roles[role]] = role;
+  }
+  return names;
 };
 Groups.MISSIONS_COUNT = 5;
 Groups.MISSIONS_COUNT_TO_WIN = 3;

@@ -1,7 +1,7 @@
 /* Override */
 
 footer {
-  margin-left: 0px;
+  background: transparent;
 }
 
 body {
@@ -12,10 +12,22 @@ body {
   padding: 15px;
 }
 
+.profile_details:nth-child(3n) {
+  clear: right;
+}
+
+.profile_details .profile_view .bottom {
+  padding: 0px;
+}
+
 /* Modified */
 
 .login_content span {
   float: left;
+}
+
+.profile_details {
+  margin-top: 15px;
 }
 
 /* Custom */
@@ -28,6 +40,108 @@ body {
 
 .avalon-error,
 .avalon-error .form-control {
-  color: #aa0000 !important;
-  border-color: #a94442 !important;
+  color: #AA0000 !important;
+  border-color: #A94442 !important;
+}
+
+.avalon-good {
+  color: #26B99A;
+}
+
+.avalon-evil {
+  color: #D9534F;
+}
+
+.avalon-card:hover {
+  background: #F2F5F7;
+}
+
+.profile_details .profile_view.avalon-card:hover .bottom {
+  background: #E2E5E7;
+}
+
+.avalon-card-unselectable {
+  cursor: default;
+}
+
+.avalon-card p,
+.avalon-card-unselectable p {
+  margin: 0px;
+}
+
+.avalon-mark-left,
+.avalon-mark-top,
+.avalon-mark-right,
+.avalon-mark-bottom {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+}
+
+.avalon-mark-left {
+  top: -25px;
+  left: -15px;
+}
+
+.avalon-mark-top {
+  top: -30px;
+  left: 50%;
+  margin-left: -16px;
+}
+
+.avalon-mark-right {
+  top: -25px;
+  right: -15px;
+}
+
+.avalon-mark-bottom {
+  bottom: 10px;
+  right: 0px;
+}
+
+.avalon-col-card-role,
+.avalon-col-card-player {
+  position: relative;
+  min-height: 1px;
+  float: left;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.avalon-col-card-role {
+  width: 25%;
+}
+
+.avalon-col-card-player {
+  width: 20%;
+}
+
+.avalon-card-player-avatar {
+  width: 75%;
+  margin: 5px auto;
+}
+
+.avalon-card-text {
+  height: 19px;
+}
+
+.avalon-hint {
+  display: flex;
+}
+
+.avalon-hint > img {
+  width: 40px;
+  height: 40px;
+}
+
+.avalon-hint > p {
+  margin: 0px 15px;
+  font-size: larger;
+  position: relative;
+}
+
+.avalon-hint > p > strong,
+.avalon-hint > p > span {
+  position: absolute;
+  bottom: 0px;
 }

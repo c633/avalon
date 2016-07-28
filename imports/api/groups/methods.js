@@ -89,7 +89,7 @@ export const start = new ValidatedMethod({
       });
     } else {
       Groups.update(groupId, {
-        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })) }
+        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })), additionalRoles: [], guessMerlin: null }
       });
     }
   },
@@ -136,13 +136,12 @@ export const approve = new ValidatedMethod({
   name: 'groups.approve',
   validate: new SimpleSchema({
     groupId: { type: String },
-    userId: { type: String },
     approval: { type: Boolean },
   }).validator(),
-  run({ groupId, userId, approval }) {
+  run({ groupId, approval }) {
     let group = Groups.findOne(groupId);
     const lastTeamApproval = {};
-    lastTeamApproval[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.approvals.${group.players.map(p => p.id).indexOf(userId)}`] = approval;
+    lastTeamApproval[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.approvals.${group.players.map(p => p.id).indexOf(this.userId)}`] = approval;
     Groups.update(groupId, {
       $set: lastTeamApproval
     });
@@ -159,13 +158,12 @@ export const vote = new ValidatedMethod({
   name: 'groups.vote',
   validate: new SimpleSchema({
     groupId: { type: String },
-    userId: { type: String },
     success: { type: Boolean },
   }).validator(),
-  run({ groupId, userId, success }) {
+  run({ groupId, success }) {
     let group = Groups.findOne(groupId);
     const lastTeamSuccessVote = {};
-    lastTeamSuccessVote[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.successVotes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(userId))}`] = success;
+    lastTeamSuccessVote[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.successVotes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(this.userId))}`] = success;
     Groups.update(groupId, {
       $set: lastTeamSuccessVote
     });

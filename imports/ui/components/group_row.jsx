@@ -2,7 +2,7 @@ import React from 'react';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
 import { join, leave } from '../../api/groups/methods.js';
 
-export default class GroupItem extends React.Component {
+export default class GroupRow extends React.Component {
   constructor(props) {
     super(props);
     this.joinGroup = this.joinGroup.bind(this);
@@ -56,10 +56,17 @@ export default class GroupItem extends React.Component {
         <td>
           {
             group.isPlaying() ?
-              <span className="label label-default">Playing</span> :
+              <span className="label label-info">Playing</span> :
               playersCount >= Groups.MIN_PLAYERS_COUNT ? 
                 <span className="label label-warning">Ready</span> :
                 <span className="label label-primary">Waiting for more players</span>
+          }
+          {
+            playersCount >= Groups.MAX_PLAYERS_COUNT ?
+              [
+                <br key="br"/>,
+                <span key="span" className="label label-default">Group is full</span>
+              ] : ''
           }
         </td>
         <td>
@@ -70,7 +77,7 @@ export default class GroupItem extends React.Component {
                 <a className="btn btn-sm btn-danger" onClick={this.leaveGroup}><i className="fa fa-sign-out"></i> Leave </a> : ''
           }
           {
-            joined ? <a href={`/groups/${group._id}`} className="btn btn-sm btn-info" ><i className="fa fa-group"></i> Go to </a> : ''
+            joined ? <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark" ><i className="fa fa-group"></i> Go to </a> : ''
           }
         </td>
       </tr>
@@ -79,10 +86,10 @@ export default class GroupItem extends React.Component {
 
 }
 
-GroupItem.propTypes = {
+GroupRow.propTypes = {
   group: React.PropTypes.object,
 };
 
-GroupItem.contextTypes = {
+GroupRow.contextTypes = {
   router: React.PropTypes.object,
 };

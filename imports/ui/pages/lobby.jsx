@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import GroupList from '../components/group_list.jsx';
+import GroupTable from '../components/group_table.jsx';
 
 export default class Lobby extends Component {
   constructor(props) {
@@ -26,7 +26,7 @@ export default class Lobby extends Component {
           </div>
         </div>
         <div className="clearfix"></div>
-        <GroupList groups={groups}/>
+        <GroupTable groups={groups}/>
       </div>
     ) : null;
   }
