@@ -55,7 +55,6 @@ Groups.schema = new SimpleSchema({
   ownerId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Owner's id
   name: { type: String },
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
-  additionalRoles: { type: [Number], defaultValue: [] }, // Additional roles
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
   guessMerlin: { type: Boolean, optional: true, defaultValue: null }, // Indicate whether Assassin correctly guesses Merlin's identity or not
 });
@@ -77,7 +76,6 @@ Groups.publicFieldsWhenFindOne = {
   ownerId: 1,
   name: 1,
   players: 1,
-  additionalRoles: 1,
   missions: 1,
   guessMerlin: 1,
 };
@@ -98,8 +96,9 @@ Groups.helpers({
   hasPlayer(userId) {
     return this.players.find(p => p.id == userId) != undefined;
   },
-  findPlayerRole(userId) {
-    return this.players.find(p => p.id == userId).role;
+  findPlayerRole(userId) { // Force return `null` if group has no such user (instead of `undefined`)
+    const player = this.players.find(p => p.id == userId);
+    return (player || null) && player.role;
   },
   isPlaying() {
     return this.missions.length != 0
@@ -177,14 +176,82 @@ Groups.helpers({
   isWaitingForVote() {
     return this.getLastTeam() != null && this.getLastTeam().successVotes.indexOf(null) != -1;
   },
-  isWaitingForGuessing() {
+  isGuessingMerlin() {
     return this.getMissionsHistory().map(m => m[m.length - 1]).filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN && this.guessMerlin == null;
   },
   getMissionsHistory() {
     return this.missions.map((m, i) => m.teams.map(t => t.memberIndices.length == 0 || t.approvals.indexOf(null) != -1 || (t.successVotes.length != 0 && t.successVotes.indexOf(null) != -1) ? undefined : t.approvals.filter(a => a == false).length >= t.approvals.filter(a => a == true).length ? null : t.successVotes.filter(a => a == false).length < (i == 3 && this.players.length >= 7 ? 2 : 1) ? true : false));
   },
-  getResult() {
-    return this.guessMerlin == null || this.guessMerlin ? false : true;
+  getSituation() {
+    let situation = {status: '', result: undefined };
+    if (this.isSelectingMembers()) {
+      situation['status'] = 'Leader is selecting team members';
+    } else if (this.isWaitingForApproval()) {
+      situation['status'] = 'Waiting for players to approve the mission team members';
+    } else if (this.isWaitingForVote()) {
+      situation['status'] = 'Waiting for team members to vote for the mission success or fail';
+    } else if (this.isGuessingMerlin()) {
+      situation['status'] = 'Waiting for Assassin to guess Merlin\'s identity';
+      situation['result'] = null;
+    } else if (this.isPlaying()) {
+      const result = this.guessMerlin == null || this.guessMerlin ? false : true;
+      situation['status'] = result ? 'Good players win' : 'Evil players win';
+      situation['result'] = result;
+    }
+    return situation;
+  },
+  findInformation(userId, playerIndex) {
+    const player = this.getPlayers()[playerIndex];
+    const otherPlayer = userId != player.user._id;
+    let role = '';
+    let side = null;
+    if (player.role == Groups.Roles.UNDECIDED) {
+      role = 'Undecided';
+    } else {
+      switch (this.findPlayerRole(userId)) {
+      case Groups.Roles.SERVANT:
+        [role, side] = otherPlayer ? ['Unknown', null] : ['Servant', true];
+        break;
+      case Groups.Roles.MERLIN:
+        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.MORDRED ? ['Good', true] : ['Evil', false] : ['Merlin', true];
+        break;
+      case Groups.Roles.PERCIVAL:
+        [role, side] = otherPlayer ? player.role == Groups.Roles.MERLIN || player.role == Groups.Roles.MORGANA ? ['Merlin', true] : ['Unknown', null] : ['Percival', true];
+        break;
+      case Groups.Roles.MINION:
+        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Minion', false];
+        break;
+      case Groups.Roles.ASSASSIN:
+        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Assassin', false];
+        break;
+      case Groups.Roles.MORDRED:
+        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Mordred', false];
+        break;
+      case Groups.Roles.MORGANA:
+        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Morgana', false];
+        break;
+      case Groups.Roles.OBERON:
+        [role, side] = otherPlayer ? ['Unknown', null] : ['Oberon', false];
+        break;
+      case null:
+        [role, side] = ['Unknown', null]; // [Groups.RoleNames()[player.role], player.role > 0 ? true : false];
+        break;
+      }
+    }
+    let status = '';
+    if (this.isWaitingForApproval()) {
+      const approval = this.getLastTeam().approvals[playerIndex];
+      status = approval == null ? 'Undecided' : approval ? 'Approved' : 'Denied';
+    }
+    if (this.isWaitingForVote()) {
+      const vote = this.getLastTeam().successVotes[this.getLastTeam().memberIndices.indexOf(playerIndex)];
+      status = vote === undefined ? '' /* : otherPlayer ? 'Going on mission' */ : vote == null ? 'Undecided' : vote ? 'Voted Success' : 'Voted Fail';
+    }
+    return { role: role, side: side, status: status }
+  },
+  findSuggestion(userId) {
+    return this.isSelectingMembers() && this.hasLeader(userId) ?
+      ` (Must select ${Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]} members)` : '';
   },
 });
 

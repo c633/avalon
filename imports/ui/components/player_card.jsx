@@ -6,9 +6,9 @@ export default class PlayerCard extends React.Component {
   }
 
   render() {
-    const { isLeader, isMember, isGuessed, selectable, user, role, side, status } = this.props;
+    const { playersCount, isLeader, isMember, isGuessed, selectable, user, role, side, status } = this.props;
     return (
-      <div onClick={this.props.onClick} className="avalon-col-card-player profile_details">
+      <div onClick={this.props.onClick} className={`avalon-col-card-player-${playersCount} profile_details`}>
         <button className={`well profile_view avalon-card${selectable ? '' : '-unselectable'} ${side != null ? `avalon-${side ? 'good' : 'evil'}` : ''}`}>
           <div className="col-sm-12">
             {isLeader ? <img src='/images/items/leader.png' className="img-responsive avalon-mark-top"/> : ''}
@@ -30,6 +30,7 @@ export default class PlayerCard extends React.Component {
 }
 
 PlayerCard.propTypes = {
+  playersCount: React.PropTypes.number,
   isLeader: React.PropTypes.bool,
   isMember: React.PropTypes.bool,
   isGuessed: React.PropTypes.bool,

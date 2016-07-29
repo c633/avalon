@@ -66,11 +66,15 @@ export const start = new ValidatedMethod({
   validate: new SimpleSchema({
     groupId: { type: String },
     reset: { type: Boolean },
+    additionalRoles: { type: [Number] },
   }).validator(),
-  run({ groupId, reset }) {
+  run({ groupId, additionalRoles, reset }) {
     const group = Groups.findOne(groupId);
     if (!group.hasOwner(this.userId)) {
       throw new Meteor.Error('groups.start.accessDenied', 'Don\'t have permission to start playing.');
+    }
+    if (additionalRoles.filter(r => r < 0).length > group.getEvilPlayersCount() - 1) {
+      throw new Meteor.Error('groups.start.invalidAdditionalRoles', 'Invalid selected additional roles.');
     }
     Groups.update(groupId, {
       $set: { missions: [] },
@@ -79,7 +83,7 @@ export const start = new ValidatedMethod({
       group.startNewMission();
       const playersCount = group.players.length;
       const evilPlayersCount = group.getEvilPlayersCount();
-      let roles = group.additionalRoles;
+      let roles = additionalRoles;
       roles = roles.concat([Groups.Roles.MERLIN, Groups.Roles.ASSASSIN]); // Required players
       const servants = Array.from(Array(playersCount - evilPlayersCount - roles.filter(r => r > 0).length)).map(_ => Groups.Roles.SERVANT);
       const minions = Array.from(Array(evilPlayersCount - roles.filter(r => r < 0).length)).map(_ => Groups.Roles.MINION);
@@ -89,26 +93,9 @@ export const start = new ValidatedMethod({
       });
     } else {
       Groups.update(groupId, {
-        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })), additionalRoles: [], guessMerlin: null }
+        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })), guessMerlin: null }
       });
     }
-  },
-});
-
-export const selectRoles = new ValidatedMethod({
-  name: 'groups.selectRoles',
-  validate: new SimpleSchema({
-    groupId: { type: String },
-    selectedAdditionalRoles: { type: [Number] },
-  }).validator(),
-  run({ groupId, selectedAdditionalRoles }) {
-    const group = Groups.findOne(groupId);
-    if (selectedAdditionalRoles.filter(r => r < 0).length > group.getEvilPlayersCount() - 1) {
-      throw new Meteor.Error('groups.selectRoles.invalid', 'Invalid selected additional roles.');
-    }
-    Groups.update(groupId, {
-      $set: { additionalRoles: selectedAdditionalRoles }
-    });
   },
 });
 
@@ -116,15 +103,15 @@ export const selectMembers = new ValidatedMethod({
   name: 'groups.selectMembers',
   validate: new SimpleSchema({
     groupId: { type: String },
-    selectedMemberIndices: { type: [Number] },
+    memberIndices: { type: [Number] },
   }).validator(),
-  run({ groupId, selectedMemberIndices }) {
+  run({ groupId, memberIndices }) {
     const group = Groups.findOne(groupId);
-    if (!group.isSelectedMembersValid(selectedMemberIndices)) {
+    if (!group.isSelectedMembersValid(memberIndices)) {
       throw new Meteor.Error('groups.selectMembers.invalid', 'Invalid selected mission team members.');
     }
     const lastTeamMemberIndices = {};
-    lastTeamMemberIndices[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.memberIndices`] = selectedMemberIndices;
+    lastTeamMemberIndices[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.memberIndices`] = memberIndices;
     Groups.update(groupId, {
       $set: lastTeamMemberIndices
     });

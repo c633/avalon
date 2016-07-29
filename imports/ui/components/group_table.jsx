@@ -50,13 +50,13 @@ export default class GroupTable extends React.Component {
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
-              <p>Simple table with group listing with members, status and options</p>
+              <p>Simple table with group listing with members, situation and options</p>
               <table className="table table-striped projects">
                 <thead>
                   <tr>
                     <th style={{ width: '20%' }}>Group</th>
                     <th>Players</th>
-                    <th>Status</th>
+                    <th>Situation</th>
                     <th style={{ width: '20%' }}></th>
                   </tr>
                 </thead>

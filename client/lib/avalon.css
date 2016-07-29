@@ -13,7 +13,7 @@ body {
 }
 
 .profile_details:nth-child(3n) {
-  clear: right;
+  clear: none;
 }
 
 .profile_details .profile_view .bottom {
@@ -69,6 +69,13 @@ body {
   margin: 0px;
 }
 
+button.avalon-card,
+button.avalon-card-unselectable,
+button.avalon-card > div,
+button.avalon-card-unselectable > div {
+  width: 100%;
+}
+
 .avalon-mark-left,
 .avalon-mark-top,
 .avalon-mark-right,
@@ -100,7 +107,12 @@ body {
 }
 
 .avalon-col-card-role,
-.avalon-col-card-player {
+.avalon-col-card-player-5,
+.avalon-col-card-player-6,
+.avalon-col-card-player-7,
+.avalon-col-card-player-8,
+.avalon-col-card-player-9,
+.avalon-col-card-player-10 {
   position: relative;
   min-height: 1px;
   float: left;
@@ -112,12 +124,25 @@ body {
   width: 25%;
 }
 
-.avalon-col-card-player {
+.avalon-col-card-player-5,
+.avalon-col-card-player-6 {
+  width: 33.33333333%;
+}
+
+.avalon-col-card-player-7,
+.avalon-col-card-player-8 {
+  width: 25%;
+}
+
+.avalon-col-card-player-9,
+.avalon-col-card-player-10 {
   width: 20%;
 }
 
 .avalon-card-player-avatar {
   width: 75%;
+  max-height: 84px;
+  max-width: 84px;
   margin: 5px auto;
 }
 
