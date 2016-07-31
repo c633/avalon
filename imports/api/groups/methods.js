@@ -93,7 +93,7 @@ export const start = new ValidatedMethod({
       });
     } else {
       Groups.update(groupId, {
-        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })), guessMerlin: null }
+        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })), guessMerlin: null, messages: [] }
       });
     }
   },
@@ -172,5 +172,27 @@ export const guess = new ValidatedMethod({
     Groups.update(groupId, {
       $set: { guessMerlin: group.players[merlinIndex].role == Groups.Roles.MERLIN }
     });
+  },
+});
+
+export const sendMessage = new ValidatedMethod({
+  name: 'groups.sendMessage',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    text: { type: String },
+  }).validator(),
+  run({ groupId, text }) {
+    if (text.length > 0) {
+      const group = Groups.findOne(groupId);
+      Groups.update(groupId, {
+        $push: {
+          messages: {
+            senderIndex: group.players.map(p => p.id).indexOf(this.userId),
+            text: text,
+            sentAt: new Date(),
+          }
+        }
+      });
+    }
   },
 });

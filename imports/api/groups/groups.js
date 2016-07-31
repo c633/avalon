@@ -51,12 +51,19 @@ MissionsSchema = new SimpleSchema({
   teams: { type: [TeamsSchema], defaultValue: [] },
 });
 
+MessagesSchema = new SimpleSchema({
+  senderIndex: { type: Number }, // Index of sender's id which is included in `players.id`
+  text: { type: String },
+  sentAt: { type: Date },
+});
+
 Groups.schema = new SimpleSchema({
   ownerId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Owner's id
   name: { type: String },
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
   guessMerlin: { type: Boolean, optional: true, defaultValue: null }, // Indicate whether Assassin correctly guesses Merlin's identity or not
+  messages: { type: [MessagesSchema], defaultValue: [] }
 });
 
 Groups.attachSchema(Groups.schema);
@@ -78,6 +85,7 @@ Groups.publicFieldsWhenFindOne = {
   players: 1,
   missions: 1,
   guessMerlin: 1,
+  messages: 1,
 };
 
 Groups.helpers({
@@ -105,14 +113,31 @@ Groups.helpers({
   },
   getLastTeam() { // Force return `null` if missions list or teams list is empty (instead of `undefined`)
     const lastMission = this.missions[this.missions.length - 1];
-    return (lastMission || null) && lastMission.teams[lastMission.teams.length - 1] || null;
+    return (lastMission || null) && lastMission.teams && lastMission.teams[lastMission.teams.length - 1] || null;
   },
   getTeamsCount() {
     return this.missions.reduce((c, m) => c + m.teams.length, 0);
   },
+  getSummaries() {
+    return this.missions.map((m, i) =>
+      m.teams.map(t => {
+        const summary = { memberIndices: t.memberIndices, denierIndices: [], failVotesCount: null, result: undefined };
+        if (t.memberIndices.length != 0 && t.approvals.indexOf(null) == -1) {
+          summary.denierIndices = t.approvals.map((a, i) => a ? -1 : i).filter(i => i >= 0);
+          if (t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) {
+            summary.result = null;
+          } else if (t.successVotes.indexOf(null) == -1) {
+            summary.failVotesCount = t.successVotes.filter(a => !a).length; 
+            summary.result = summary.failVotesCount < (i == 3 && this.players.length >= 7 ? 2 : 1) ? true : false;
+          }
+        }
+        return summary;
+      })
+    );
+  },
   startNewMission() {
-    const missionsHistory = this.getMissionsHistory().map(m => m[m.length - 1]);
-    if (missionsHistory.filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN || missionsHistory.filter(m => !m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
+    const summaryResults = this.getSummaries().map(m => m[m.length - 1].result);
+    if (summaryResults.filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN || summaryResults.filter(m => !m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
       return;
     }
     const newMission = { teams: [] };
@@ -171,32 +196,43 @@ Groups.helpers({
     return this.getLastTeam() != null && this.getLastTeam().approvals.indexOf(null) != -1;
   },
   isDenied() {
-    return this.getLastTeam() != null && this.getLastTeam().approvals.indexOf(null) == -1 && this.getLastTeam().approvals.filter(a => a == false).length >= this.getLastTeam().approvals.filter(a => a == true).length;
+    return this.getLastTeam() != null && this.getLastTeam().approvals.indexOf(null) == -1 && this.getLastTeam().approvals.filter(a => !a).length >= this.getLastTeam().approvals.filter(a => a).length;
   },
   isWaitingForVote() {
     return this.getLastTeam() != null && this.getLastTeam().successVotes.indexOf(null) != -1;
   },
   isGuessingMerlin() {
-    return this.getMissionsHistory().map(m => m[m.length - 1]).filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN && this.guessMerlin == null;
-  },
-  getMissionsHistory() {
-    return this.missions.map((m, i) => m.teams.map(t => t.memberIndices.length == 0 || t.approvals.indexOf(null) != -1 || (t.successVotes.length != 0 && t.successVotes.indexOf(null) != -1) ? undefined : t.approvals.filter(a => a == false).length >= t.approvals.filter(a => a == true).length ? null : t.successVotes.filter(a => a == false).length < (i == 3 && this.players.length >= 7 ? 2 : 1) ? true : false));
+    return this.getSummaries().map(m => m[m.length - 1].result).filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN && this.guessMerlin == null;
   },
   getSituation() {
-    let situation = {status: '', result: undefined };
-    if (this.isSelectingMembers()) {
-      situation['status'] = 'Leader is selecting team members';
-    } else if (this.isWaitingForApproval()) {
-      situation['status'] = 'Waiting for players to approve the mission team members';
-    } else if (this.isWaitingForVote()) {
-      situation['status'] = 'Waiting for team members to vote for the mission success or fail';
-    } else if (this.isGuessingMerlin()) {
-      situation['status'] = 'Waiting for Assassin to guess Merlin\'s identity';
-      situation['result'] = null;
-    } else if (this.isPlaying()) {
-      const result = this.guessMerlin == null || this.guessMerlin ? false : true;
-      situation['status'] = result ? 'Good players win' : 'Evil players win';
-      situation['result'] = result;
+    let situation = {status: '', slot: undefined, result: undefined };
+    if (!this.isPlaying()) {
+      const playersCount = this.getPlayers().length; 
+      if (playersCount < Groups.MIN_PLAYERS_COUNT) {
+        situation.status = 'Waiting for more players';
+        situation.slot = null;
+      } else {
+        situation.status = 'Ready';
+        situation.slot = playersCount < Groups.MAX_PLAYERS_COUNT ? true : false;
+      }
+    } else {
+      if (this.getLastTeam() == null) {
+        return situation;
+      }
+      if (this.isSelectingMembers()) {
+        situation.status = 'Leader is selecting team members';
+      } else if (this.isWaitingForApproval()) {
+        situation.status = 'Waiting for players to approve the mission team members';
+      } else if (this.isWaitingForVote()) {
+        situation.status = 'Waiting for team members to vote for the mission success or fail';
+      } else if (this.isGuessingMerlin()) {
+        situation.status = 'Waiting for Assassin to guess Merlin\'s identity';
+        situation.result = null;
+      } else {
+        const result = this.guessMerlin == null || this.guessMerlin ? false : true;
+        situation.status = result ? 'Good players win' : 'Evil players win';
+        situation.result = result;
+      }
     }
     return situation;
   },

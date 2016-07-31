@@ -55,7 +55,7 @@ export default class AdditionalRolesPanel extends React.Component {
             group.getPlayers().length >= Groups.MIN_PLAYERS_COUNT ?
               <div className="form-group">
                 <button className="btn btn-success" onClick={this.start}>Start playing</button>
-              </div> : ''
+              </div> : null
           }
         </div>
       </div>

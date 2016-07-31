@@ -38,7 +38,7 @@ export default class GroupTable extends React.Component {
             </div>
           </form>
         </div>
-      ); 
+      );
     }
     return (
       <div className="row">
@@ -50,7 +50,7 @@ export default class GroupTable extends React.Component {
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
-              <p>Simple table with group listing with members, situation and options</p>
+              <p>Simple table with group listing with players, situation and options</p>
               <table className="table table-striped projects">
                 <thead>
                   <tr>

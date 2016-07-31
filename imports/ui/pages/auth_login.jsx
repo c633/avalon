@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
- 
+
 export default class AuthLogin extends Component {
   constructor(props) {
     super(props);
@@ -75,7 +75,7 @@ export default class AuthLogin extends Component {
           errors: { reason: err.reason },
         });
       } else {
-        this.context.router.push('/'); 
+        this.context.router.push('/');
       }
     });
   }

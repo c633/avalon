@@ -1,6 +1,7 @@
 /* Override */
 
-footer {
+footer,
+ul.bar_tabs {
   background: transparent;
 }
 
@@ -20,6 +21,31 @@ body {
   padding: 0px;
 }
 
+ul.bar_tabs {
+  margin: 11px 0px;
+  padding-left: 0px;
+}
+
+ul.top_profiles li:nth-child(odd) {
+  background: transparent;
+}
+
+.media > .pull-right {
+  margin-left: 10px;
+}
+
+.media > .pull-left {
+  margin-right: 10px;
+}
+
+.media .profile_thumb {
+  padding: 5px;
+}
+
+.accordion .panel:hover{
+  background: transparent;
+}
+
 /* Modified */
 
 .login_content span {
@@ -28,6 +54,25 @@ body {
 
 .profile_details {
   margin-top: 15px;
+}
+
+.media-body {
+  background: #F8F8F8;
+  border-radius: 10px;
+  padding: 0px 10px;
+}
+
+.media-body small {
+  font-size: 70%;
+  color: #A8A8A8;
+}
+
+ul.top_profiles {
+  overflow: auto;
+}
+
+.avalon-summaries .panel-body {
+  padding: 5px;
 }
 
 /* Custom */
@@ -116,8 +161,7 @@ button.avalon-card-unselectable > div {
   position: relative;
   min-height: 1px;
   float: left;
-  padding-right: 10px;
-  padding-left: 10px;
+  padding: 0px 20px;
 }
 
 .avalon-col-card-role {
@@ -160,7 +204,7 @@ button.avalon-card-unselectable > div {
 }
 
 .avalon-hint > p {
-  margin: 0px 15px;
+  margin: 0px 5px;
   font-size: larger;
   position: relative;
 }
@@ -169,4 +213,13 @@ button.avalon-card-unselectable > div {
 .avalon-hint > p > span {
   position: absolute;
   bottom: 0px;
+}
+
+.avalon-summaries {
+  height: 350px;
+  overflow: auto;
+}
+
+.avalon-summary-result {
+  height: 24px;
 }

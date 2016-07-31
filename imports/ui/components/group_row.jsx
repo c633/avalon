@@ -35,10 +35,9 @@ export default class GroupRow extends React.Component {
 
   render() {
     const { group } = this.props;
-    const playersCount = group.getPlayers().length;
+    const situation = group.getSituation();
     const joined = group.hasPlayer(Meteor.userId());
     const isPlaying = group.isPlaying();
-    const joinable = !joined && !isPlaying;
     return (
       <tr>
         <td>
@@ -55,35 +54,30 @@ export default class GroupRow extends React.Component {
         </td>
         <td>
           {
-            group.isPlaying() ?
+            isPlaying ?
               <span className="label label-info">Playing</span> :
-              playersCount >= Groups.MIN_PLAYERS_COUNT ? 
-                <span className="label label-warning">Ready</span> :
-                <span className="label label-primary">Waiting for more players</span>
+              <span className={`label label-${situation.slot == null ? 'primary' : 'warning'}`}>{situation.status}</span>
           }
           {
-            playersCount >= Groups.MAX_PLAYERS_COUNT ?
+            situation.slot == false ?
               [
                 <br key="br"/>,
                 <span key="span" className="label label-default">Group is full</span>
-              ] : ''
+              ] : null
           }
         </td>
         <td>
           {
-            !!Meteor.userId() && (joined || playersCount < Groups.MAX_PLAYERS_COUNT) && !isPlaying ?
-              joinable ?
-                <a className="btn btn-sm btn-success" onClick={this.joinGroup}><i className="fa fa-sign-in"></i> Join </a> :
-                <a className="btn btn-sm btn-danger" onClick={this.leaveGroup}><i className="fa fa-sign-out"></i> Leave </a> : ''
+            !!Meteor.userId() && (joined || situation.slot != false) && !isPlaying ?
+              !joined && !isPlaying ?
+                <a className="btn btn-sm btn-success" onClick={this.joinGroup}><i className="fa fa-sign-in"></i> Join</a> :
+                <a className="btn btn-sm btn-danger" onClick={this.leaveGroup}><i className="fa fa-sign-out"></i> Leave</a> : null
           }
-          {
-            joined ? <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark" ><i className="fa fa-group"></i> Go to </a> : ''
-          }
+          {joined ? <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark"><i className="fa fa-group"></i> Go to</a> : null}
         </td>
       </tr>
     );
   }
-
 }
 
 GroupRow.propTypes = {
