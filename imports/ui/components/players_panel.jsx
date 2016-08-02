@@ -1,12 +1,13 @@
 import React from 'react';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
-import PlayerCard from '../components/player_card.jsx';
 import { start, selectMembers, approve, vote, guess } from '../../api/groups/methods.js';
+import PlayerCard from './player_card.jsx';
+import ErrorModal from './error_modal.jsx';
 
 export default class PlayersPanel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { selectedMemberIndices: [], guessedIndex: -1 };
+    this.state = { selectedMemberIndices: [], guessedIndex: -1, errorModal: { isShowing: false, reason: '' } };
     this.restart = this.restart.bind(this);
     this.onPlayerCardClick = this.onPlayerCardClick.bind(this);
     this.selectMembers = this.selectMembers.bind(this);
@@ -14,6 +15,115 @@ export default class PlayersPanel extends React.Component {
     this.vote = this.vote.bind(this);
     this.guess = this.guess.bind(this);
   }
+
+  // REGION: Component Specifications
+
+  render() {
+    const { group } = this.props;
+    const isSelectingMembers = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
+    const isGuessingMerlin = group.isGuessingMerlin() && group.findPlayerRole(Meteor.userId()) == Groups.Roles.ASSASSIN;
+    const selectable = isSelectingMembers || isGuessingMerlin;
+    const leader = group.getLeader();
+    const summaries = group.getSummaries();
+    return (
+      <div className="x_panel">
+        <div className="x_title">
+          <div className="row">
+            {
+              summaries.length > 0 ?
+                <div className="col-md-4 col-xs-4">
+                  <div className="avalon-hint">
+                    <img src="/images/items/leader.png" className="img-responsive"/>
+                    <div>
+                      <p>Mission {summaries.length}, team {summaries[summaries.length - 1].length}</p>
+                      <p>Leader: <strong>{leader && leader.username}</strong></p>
+                    </div>
+                  </div>
+                </div> : null
+            }
+            {
+              group.isSelectingMembers() ?
+                <div className="col-md-2 col-xs-2">
+                  <div className="avalon-hint">
+                    <img src="/images/items/member.png" className="img-responsive"/>
+                    <p>Team member</p>
+                  </div>
+                </div> : null
+            }
+            {
+              group.isWaitingForApproval() ?
+                ['Approved', 'Denied'].map(a =>
+                  <div key={a} className="col-md-2 col-xs-2">
+                    <div className="avalon-hint">
+                      <img src={`/images/items/${a.toLowerCase()}.png`} className="img-responsive"/>
+                      <p>{a}</p>
+                    </div>
+                  </div>
+                ) : null
+            }
+            {
+              group.isWaitingForVote() ?
+                ['Voted Success', 'Voted Fail'].map(v =>
+                  <div key={v} className="col-md-2 col-xs-2">
+                    <div className="avalon-hint">
+                      <img src={`/images/items/${v.replace(' ', '-').toLowerCase()}.png`} className="img-responsive"/>
+                      <p>{v}</p>
+                    </div>
+                  </div>
+                ) : null
+            }
+            <div className="col-md-4 col-xs-4">
+              <div className="avalon-hint">
+                <strong>{group.getSituation().status}</strong>
+              </div>
+            </div>
+          </div>
+          <div className="clearfix"></div>
+        </div>
+        <div className="x_content">
+          <div className="row">
+            <div className="clearfix"></div>
+            {group.getPlayers().map((player, index) => {
+              const { role, side, status } = group.findInformation(Meteor.userId(), index);
+              return <PlayerCard
+                key={player.user._id} onClick={() => { if (selectable) this.onPlayerCardClick(index); }}
+                playersCount={group.players.length >= Groups.MIN_PLAYERS_COUNT ? group.players.length : Groups.MIN_PLAYERS_COUNT}
+                isLeader={group.hasLeader(player.user._id)}
+                isMember={group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id))}
+                isGuessed={this.state.guessedIndex == index}
+                selectable={selectable} user={player.user} role={role} side={side} status={status}/>
+            })}
+          </div>
+          <div className="form-group">
+            {isSelectingMembers ? <button className="btn btn-info" onClick={this.selectMembers}>Select members</button> : null}
+            {
+              group.isWaitingForApproval() && group.hasPlayer(Meteor.userId()) ?
+                <span>
+                  <button className="btn btn-success" onClick={() => this.approve(true)}>Approve</button>
+                  <button className="btn btn-danger" onClick={() => this.approve(false)}>Deny</button>
+                </span> : null
+            }
+            {
+              group.isWaitingForVote() && group.hasMember(Meteor.userId()) ?
+                <span>
+                  <button className="btn btn-success" onClick={() => this.vote(true)}>Vote Success</button>
+                  {
+                    group.findPlayerRole(Meteor.userId()) < 0 ?
+                      <button className="btn btn-danger" onClick={() => this.vote(false)}>Vote Fail</button> : null
+                  }
+                </span> : null
+            }
+            {isGuessingMerlin ? <button className="btn btn-dark" onClick={this.guess}>Guess Merlin</button> : null}
+            <strong>{group.findSuggestion(Meteor.userId())}</strong>
+            {group.hasOwner(Meteor.userId()) ? <div><button className="btn btn-primary" onClick={this.restart}>Restart game</button></div> : null}
+          </div>
+          {this.state.errorModal.isShowing ? <ErrorModal hide={() => this.setState({ errorModal: { isShowing: false } })} reason={this.state.errorModal.reason}/> : null}
+        </div>
+      </div>
+    );
+  }
+
+  // REGION: Handlers
 
   restart() {
     const groupId = this.props.group._id;
@@ -40,10 +150,10 @@ export default class PlayersPanel extends React.Component {
   }
 
   selectMembers() {
-    const groupId = this.props.group._id;
-    selectMembers.call({ groupId: groupId, memberIndices: this.state.selectedMemberIndices }, err => {
+    const { group } = this.props;
+    selectMembers.call({ groupId: group._id, memberIndices: this.state.selectedMemberIndices }, err => {
       if (err) {
-        alert(err.reason);
+        this.setState({ errorModal: { isShowing: true, reason: group.findSuggestion(Meteor.userId()) } });
       } else {
         this.setState({ selectedMemberIndices: [] });
       }
@@ -77,103 +187,6 @@ export default class PlayersPanel extends React.Component {
         this.setState({ guessedIndex: -1 });
       }
     });
-  }
-
-  render() {
-    const { group } = this.props;
-    const isSelectingMembers = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
-    const isGuessingMerlin = group.isGuessingMerlin() && group.findPlayerRole(Meteor.userId()) == Groups.Roles.ASSASSIN;
-    const selectable = isSelectingMembers || isGuessingMerlin;
-    const leader = group.getLeader();
-    return (
-      <div className="x_panel">
-        <div className="x_title">
-          <div className="row">
-            <div className="col-md-4 col-xs-4">
-              <div className="avalon-hint">
-                <img src="/images/items/leader.png" className="img-responsive"/>
-                <p>Leader: <strong>{leader && leader.username}</strong></p>
-              </div>
-            </div>
-            {
-              group.isSelectingMembers() ?
-                <div className="col-md-2 col-xs-2">
-                  <div className="avalon-hint">
-                    <img src="/images/items/member.png" className="img-responsive"/>
-                    <p><span>Team member</span></p>
-                  </div>
-                </div> : null
-            }
-            {
-              group.isWaitingForApproval() ?
-                ['Approved', 'Denied'].map(a =>
-                  <div key={a} className="col-md-2 col-xs-2">
-                    <div className="avalon-hint">
-                      <img src={`/images/items/${a.toLowerCase()}.png`} className="img-responsive"/>
-                      <p><span>{a}</span></p>
-                    </div>
-                  </div>
-                ) : ''
-            }
-            {
-              group.isWaitingForVote() ?
-                ['Voted Success', 'Voted Fail'].map(v =>
-                  <div key={v} className="col-md-2 col-xs-2">
-                    <div className="avalon-hint">
-                      <img src={`/images/items/${v.replace(' ', '-').toLowerCase()}.png`} className="img-responsive"/>
-                      <p><span>{v}</span></p>
-                    </div>
-                  </div>
-                ) : ''
-            }
-            <div className="col-md-4 col-xs-4">
-              <div className="avalon-hint">
-                <strong>{group.getSituation().status}</strong>
-              </div>
-            </div>
-          </div>
-          <div className="clearfix"></div>
-        </div>
-        <div className="x_content">
-          <div className="row">
-            <div className="clearfix"></div>
-            {group.getPlayers().map((player, index) => {
-              const { role, side, status } = group.findInformation(Meteor.userId(), index);
-              return <PlayerCard
-                key={player.user._id} onClick={() => { if (selectable) this.onPlayerCardClick(index); }}
-                playersCount={group.players.length >= Groups.MIN_PLAYERS_COUNT ? group.players.length : Groups.MIN_PLAYERS_COUNT}
-                isLeader={group.hasLeader(player.user._id)}
-                isMember={group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id))}
-                isGuessed={this.state.guessedIndex == index}
-                selectable={selectable} user={player.user} role={role} side={side} status={status}/>
-            })}
-          </div>
-          <div className="form-group">
-            {isSelectingMembers ? <button className="btn btn-info" onClick={this.selectMembers}>Select members</button> : null}
-            {
-              group.isWaitingForApproval() && group.hasPlayer(Meteor.userId()) ?
-                <div>
-                  <button className="btn btn-success" onClick={() => this.approve(true)}>Approve</button>
-                  <button className="btn btn-danger" onClick={() => this.approve(false)}>Deny</button>
-                </div> : null
-            }
-            {
-              group.isWaitingForVote() && group.hasMember(Meteor.userId()) ?
-                <div>
-                  <button className="btn btn-success" onClick={() => this.vote(true)}>Vote Success</button>
-                  {
-                    group.findPlayerRole(Meteor.userId()) < 0 ?
-                      <button className="btn btn-danger" onClick={() => this.vote(false)}>Vote Fail</button> : null
-                  }
-                </div> : null
-            }
-            {isGuessingMerlin ? <button className="btn btn-dark" onClick={this.guess}>Guess Merlin</button> : null}
-            {group.findSuggestion(Meteor.userId())}
-            {group.hasOwner(Meteor.userId()) ? <div><button className="btn btn-primary" onClick={this.restart}>Restart game</button></div> : null}
-          </div>
-        </div>
-      </div>
-    );
   }
 }
 

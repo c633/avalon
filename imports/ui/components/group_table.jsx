@@ -8,17 +8,7 @@ export default class GroupTable extends React.Component {
     this.createGroup = this.createGroup.bind(this);
   }
 
-  createGroup(event) {
-    event.preventDefault();
-    const { router } = this.context;
-    const groupId = insert.call({ name: this.refs.name.value }, err => {
-      if (err) {
-        alert(err.reason);
-      } else {
-        router.push(`/groups/${groupId}`);
-      }
-    });
-  }
+  // REGION: Component Specifications
 
   render() {
     const { groups } = this.props;
@@ -51,7 +41,7 @@ export default class GroupTable extends React.Component {
             </div>
             <div className="x_content">
               <p>Simple table with group listing with players, situation and options</p>
-              <table className="table table-striped projects">
+              <table className="table table-bordered projects">
                 <thead>
                   <tr>
                     <th style={{ width: '20%' }}>Group</th>
@@ -69,6 +59,20 @@ export default class GroupTable extends React.Component {
         </div>
       </div>
     );
+  }
+
+  // REGION: Handlers
+
+  createGroup(event) {
+    event.preventDefault();
+    const { router } = this.context;
+    const groupId = insert.call({ name: this.refs.name.value }, err => {
+      if (err) {
+        alert(err.reason);
+      } else {
+        router.push(`/groups/${groupId}`);
+      }
+    });
   }
 }
 

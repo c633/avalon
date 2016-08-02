@@ -8,6 +8,8 @@ export default class App extends React.Component {
     super(props);
   }
 
+  // REGION: Component Specifications
+
   render() {
     const { user, children } = this.props;
     return (

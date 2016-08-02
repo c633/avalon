@@ -1,17 +1,18 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router';
+import React from 'react';
 
-export default class AuthSignup extends Component {
+export default class AuthSignup extends React.Component {
   constructor(props) {
     super(props);
     this.state = { errors: {} };
     this.signup = this.signup.bind(this);
   }
 
+  // REGION: Component Specifications
+
   render() {
     const { errors } = this.state;
-    let usernameError = (errors['username'] || errors['reason']);
-    let passwordError = (errors['password'] || errors['reason']);
+    let usernameError = errors['username'] || errors['reason'];
+    let passwordError = errors['password'] || errors['reason'];
     usernameError = usernameError && (usernameError.toLowerCase().indexOf('user') > -1 ? usernameError : '');
     passwordError = passwordError && (passwordError.toLowerCase().indexOf('password') > -1 ? passwordError : '');
     return (
@@ -49,6 +50,8 @@ export default class AuthSignup extends Component {
       </div>
     );
   }
+
+  // REGION: Handlers
 
   signup(event) {
     event.preventDefault();

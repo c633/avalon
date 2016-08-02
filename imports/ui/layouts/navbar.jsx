@@ -6,10 +6,7 @@ export default class Navbar extends React.Component {
     this.logout = this.logout.bind(this);
   }
 
-  logout() {
-    Meteor.logout();
-    // this.context.router.push('/'); // Force redirect to lobby
-  }
+  // REGION: Component Specifications
 
   render() {
     const { user } = this.props;
@@ -41,6 +38,13 @@ export default class Navbar extends React.Component {
         </div>
       </div>
     );
+  }
+
+  // REGION: Handlers
+
+  logout() {
+    Meteor.logout();
+    // this.context.router.push('/'); // Force redirect to lobby
   }
 }
 

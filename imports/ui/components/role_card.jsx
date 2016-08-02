@@ -6,6 +6,8 @@ export default class RoleCard extends React.Component {
     super(props);
   }
 
+  // REGION: Component Specifications
+
   render() {
     const { role, selected } = this.props;
     const name = Groups.RoleNames()[role];
@@ -33,7 +35,4 @@ export default class RoleCard extends React.Component {
 RoleCard.propTypes = {
   role: React.PropTypes.number,
   selected: React.PropTypes.bool,
-};
-
-RoleCard.contextTypes = {
 };

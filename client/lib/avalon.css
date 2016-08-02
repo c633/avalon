@@ -1,11 +1,15 @@
 /* Override */
 
-footer,
+footer {
+  margin-left: 0px;
+}
+
 ul.bar_tabs {
   background: transparent;
 }
 
 body {
+  color: #4B5F71;
   background: #F7F7F7;
 }
 
@@ -42,8 +46,26 @@ ul.top_profiles li:nth-child(odd) {
   padding: 5px;
 }
 
+.accordion .panel,
 .accordion .panel:hover{
-  background: transparent;
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: #F0F0F0;
+}
+
+.top_nav .nav>li>a:focus,
+.top_nav .nav>li>a:hover,
+.top_nav .nav .open>a,
+.top_nav .nav .open>a:focus,
+.top_nav .nav .open>a:hover {
+  background: #B9B9B9;
+}
+
+h3 small {
+  color: #A0A0A0;
 }
 
 /* Modified */
@@ -75,7 +97,34 @@ ul.top_profiles {
   padding: 5px;
 }
 
+.nav_menu,
+.x_panel,
+.profile_details .profile_view,
+footer {
+  background-color: rgba(255, 255, 255, 0.75);
+}
+
+.x_panel {
+  border-radius: 10px;
+}
+
+.login_form {
+  border-radius: 10px;
+  background-color: rgba(255,255,255,0.9);
+  position: inherit;
+  padding: 10px 20px;
+  margin: 20px;
+}
+
+.page-title .title_left h3 {
+  color: #FAFAFA;
+}
+
 /* Custom */
+
+#app {
+  background-image: url("/images/background.jpg");
+}
 
 .avalon-logo {
   height: 40px;
@@ -98,11 +147,11 @@ ul.top_profiles {
 }
 
 .avalon-card:hover {
-  background: #F2F5F7;
+  background: #E2E5E7;
 }
 
 .profile_details .profile_view.avalon-card:hover .bottom {
-  background: #E2E5E7;
+  background: #D2D5D7;
 }
 
 .avalon-card-unselectable {
@@ -203,7 +252,7 @@ button.avalon-card-unselectable > div {
   height: 40px;
 }
 
-.avalon-hint > p {
+.avalon-hint p {
   margin: 0px 5px;
   font-size: larger;
   position: relative;

@@ -1,12 +1,13 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router';
+import React from 'react';
 
-export default class AuthLogin extends Component {
+export default class AuthLogin extends React.Component {
   constructor(props) {
     super(props);
     this.state = { errors: {} };
     this.login = this.login.bind(this);
   }
+
+  // REGION: Component Specifications
 
   render() {
     const { errors } = this.state;
@@ -49,6 +50,8 @@ export default class AuthLogin extends Component {
       </div>
     );
   }
+
+  // REGION: Handlers
 
   login(event) {
     event.preventDefault();

@@ -5,20 +5,16 @@ export default class Footer extends React.Component {
     super(props);
   }
 
+  // REGION: Component Specifications
+
   render() {
     return (
       <footer>
         <div className="pull-right">
-          Avalon game
+          <strong>Avalon game</strong>
         </div>
         <div className="clearfix"></div>
       </footer>
     );
   }
 }
-
-Footer.propTypes = {
-};
-
-Footer.contextTypes = {
-};

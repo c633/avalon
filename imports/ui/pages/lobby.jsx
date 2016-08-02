@@ -1,10 +1,12 @@
-import React, { Component } from 'react';
+import React from 'react';
 import GroupTable from '../components/group_table.jsx';
 
-export default class Lobby extends Component {
+export default class Lobby extends React.Component {
   constructor(props) {
     super(props);
   }
+
+  // REGION: Component Specifications
 
   render() {
     const { groups, loaded } = this.props;

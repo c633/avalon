@@ -127,7 +127,7 @@ Groups.helpers({
           if (t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) {
             summary.result = null;
           } else if (t.successVotes.indexOf(null) == -1) {
-            summary.failVotesCount = t.successVotes.filter(a => !a).length; 
+            summary.failVotesCount = t.successVotes.filter(a => !a).length;
             summary.result = summary.failVotesCount < (i == 3 && this.players.length >= 7 ? 2 : 1) ? true : false;
           }
         }
@@ -207,7 +207,7 @@ Groups.helpers({
   getSituation() {
     let situation = {status: '', slot: undefined, result: undefined };
     if (!this.isPlaying()) {
-      const playersCount = this.getPlayers().length; 
+      const playersCount = this.getPlayers().length;
       if (playersCount < Groups.MIN_PLAYERS_COUNT) {
         situation.status = 'Waiting for more players';
         situation.slot = null;
@@ -281,13 +281,26 @@ Groups.helpers({
     }
     if (this.isWaitingForVote()) {
       const vote = this.getLastTeam().successVotes[this.getLastTeam().memberIndices.indexOf(playerIndex)];
-      status = vote === undefined ? '' /* : otherPlayer ? 'Going on mission' */ : vote == null ? 'Undecided' : vote ? 'Voted Success' : 'Voted Fail';
+      status = vote === undefined ? '' : otherPlayer || vote == null ? 'Waiting' : vote ? 'Voted Success' : 'Voted Fail';
     }
     return { role: role, side: side, status: status }
   },
   findSuggestion(userId) {
-    return this.isSelectingMembers() && this.hasLeader(userId) ?
-      ` (Must select ${Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]} members)` : '';
+    let suggestion;
+    if (this.hasOwner(userId) && !this.isPlaying()) {
+      suggestion = `Click to select additional roles if you want (you can only select up to ${this.getEvilPlayersCount() - 1} additional evil role(s))`;
+    } else if (this.isSelectingMembers() && this.hasLeader(userId)) {
+      suggestion = ` Click player cards then press 'Select members' button to select ${Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]} team members`;
+    } else if (this.isWaitingForApproval() && this.hasPlayer(userId)) {
+      const approval = this.getLastTeam().approvals[this.players.map(p => p.id).indexOf(userId)];
+      suggestion = `Press buttons to approve or deny the mission team members${approval == null ? '' : ` (You ${approval ? 'approved' : 'denied'})`}`;
+    } else if (this.isWaitingForVote() && this.hasMember(userId)) {
+      const vote = this.getLastTeam().successVotes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))];
+      suggestion = `Press buttons to vote for the mission success or fail${vote == null ? '' : ` (You voted for ${vote ? 'success' : 'fail'})`}`;
+    } else if (this.isGuessingMerlin() && this.findPlayerRole(userId) == Groups.Roles.ASSASSIN) {
+      suggestion = 'Click one player card then press \'Guess Merlin\' button to guess who is Merlin';
+    }
+    return suggestion;
   },
 });
 

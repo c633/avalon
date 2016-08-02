@@ -8,6 +8,8 @@ export default class GroupPage extends React.Component {
     super(props);
   }
 
+  // REGION: Component Specifications
+
   render() {
     const { group, loaded } = this.props;
     let content = null;

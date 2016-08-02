@@ -1,35 +1,18 @@
 import React from 'react';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
-import RoleCard from '../components/role_card.jsx';
 import { start } from '../../api/groups/methods.js';
+import RoleCard from './role_card.jsx';
+import ErrorModal from './error_modal.jsx';
 
 export default class AdditionalRolesPanel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { selectedAdditionalRoles: [] };
+    this.state = { selectedAdditionalRoles: [], errorModal: { isShowing: false, reason: '' } };
     this.start = this.start.bind(this);
     this.onRoleCardClick = this.onRoleCardClick.bind(this);
   }
 
-  start() {
-    const groupId = this.props.group._id;
-    start.call({ groupId: groupId, additionalRoles: this.state.selectedAdditionalRoles, reset: false }, err => {
-      if (err) {
-        alert(err.reason);
-      }
-    });
-  }
-
-  onRoleCardClick(role) {
-    const selectedAdditionalRoles = this.state.selectedAdditionalRoles;
-    const index = selectedAdditionalRoles.indexOf(role);
-    if (index == -1) {
-      selectedAdditionalRoles.push(role);
-    } else {
-      selectedAdditionalRoles.splice(index, 1);
-    }
-    this.setState({ selectedAdditionalRoles: selectedAdditionalRoles });
-  }
+  // REGION: Component Specifications
 
   render() {
     const { group } = this.props;
@@ -42,7 +25,7 @@ export default class AdditionalRolesPanel extends React.Component {
         <div className="x_content">
           <div className="row">
             <div className="col-md-12 col-sm-12 col-xs-12 text-center">
-              Click to select additional roles if you want (you can only select up to <strong>{group.getEvilPlayersCount() - 1}</strong> additional evil role(s))
+              {group.findSuggestion(Meteor.userId())}
             </div>
             <div className="clearfix"></div>
             {
@@ -57,9 +40,32 @@ export default class AdditionalRolesPanel extends React.Component {
                 <button className="btn btn-success" onClick={this.start}>Start playing</button>
               </div> : null
           }
+          {this.state.errorModal.isShowing ? <ErrorModal hide={() => this.setState({ errorModal: { isShowing: false } })} reason={this.state.errorModal.reason}/> : null}
         </div>
       </div>
     ) : null;
+  }
+
+  // REGION: Handlers
+
+  start() {
+    const { group } = this.props;
+    start.call({ groupId: group._id, additionalRoles: this.state.selectedAdditionalRoles, reset: false }, err => {
+      if (err) {
+        this.setState({ errorModal: { isShowing: true, reason: group.findSuggestion(Meteor.userId()) } });
+      }
+    });
+  }
+
+  onRoleCardClick(role) {
+    const selectedAdditionalRoles = this.state.selectedAdditionalRoles;
+    const index = selectedAdditionalRoles.indexOf(role);
+    if (index == -1) {
+      selectedAdditionalRoles.push(role);
+    } else {
+      selectedAdditionalRoles.splice(index, 1);
+    }
+    this.setState({ selectedAdditionalRoles: selectedAdditionalRoles });
   }
 }
 

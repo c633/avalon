@@ -8,17 +8,7 @@ export default class HistoryPanel extends React.Component {
     this.sendMessage = this.sendMessage.bind(this);
   }
 
-  sendMessage(event) {
-    event.preventDefault();
-    const groupId = this.props.group._id;
-    sendMessage.call({ groupId: groupId, text: this.refs.text.value }, err => {
-      if (err) {
-        alert(err.reason);
-      } else {
-        this.refs.text.value = '';
-      }
-    });
-  }
+  // REGION: Component Specifications
 
   render() {
     const { group } = this.props;
@@ -49,13 +39,13 @@ export default class HistoryPanel extends React.Component {
       <div className="avalon-summaries">
         <div className="accordion" role="tablist" aria-multiselectable="true">
           {
-            group.getSummaries().map((s, i) => {
-              const lastResult = s[s.length - 1].result;
+            group.getSummaries().map((m, i) => {
+              const lastResult = m[m.length - 1].result;
               return (
                 <div key={i} className="panel">
                   <div className="panel-heading" role="tab" aria-expanded="true">
-                    <span className="panel-title"><strong>Mission {i + 1}</strong> ({lastResult === undefined ? 'Playing' : lastResult ? 'Success' : 'Fail'})</span>
-                    <img src={`/images/items/${lastResult === undefined ? 'undecided' : lastResult ? 'mission-success' : 'mission-fail' }.png`} className="pull-right avalon-summary-result"/>
+                    <span className={`panel-title${lastResult === undefined ? '' : ` avalon-${lastResult ? 'good' : 'evil'}`}`}><strong>Mission {i + 1}</strong> ({lastResult === undefined ? 'Playing' : lastResult ? 'Success' : 'Fail'})</span>
+                    <img src={`/images/items/${lastResult === undefined ? 'playing' : `mission-${lastResult ? 'success' : 'fail'}` }.png`} className="pull-right avalon-summary-result"/>
                   </div>
                   <div className="panel-collapse collapse in" role="tabpanel">
                     <div className="panel-body">
@@ -64,18 +54,16 @@ export default class HistoryPanel extends React.Component {
                           <tr>
                             <th>#</th>
                             <th>Team members</th>
-                            <th>Deniers</th>
-                            <th>Votes</th>
+                            <th>Result</th>
                           </tr>
                         </thead>
                         <tbody>
                           {
-                            s.map((t, j) =>
+                            m.map((t, j) =>
                               <tr key={j}>
                                 <th scope="row">{j + 1}</th>
                                 <td>{t.memberIndices.map(i => <div key={i}>{players[i].user.username}</div>)}</td>
-                                <td>{t.denierIndices.map(i => <div key={i}>{players[i].user.username}</div>)}</td>
-                                <td>{t.failVotesCount != null ? `${t.failVotesCount} fail(s)` : null}</td>
+                                <td>{t.result === undefined ? '' : t.result == null ? <div>Denied by<br/>{t.denierIndices.length} player(s)</div> : t.result ? 'Success' : <div>Fail with <br/>{t.failVotesCount} fail vote(s)</div>}</td>
                               </tr>
                             )
                           }
@@ -127,6 +115,8 @@ export default class HistoryPanel extends React.Component {
     );
   }
 
+  // REGION: Lifecycle Methods
+
   componentDidMount() {
     const node = this.refs.messagesContainer;
     node.scrollTop = node.scrollHeight;
@@ -142,6 +132,20 @@ export default class HistoryPanel extends React.Component {
       const node = this.refs.messagesContainer;
       node.scrollTop = node.scrollHeight;
     }
+  }
+
+  // REGION: Handlers
+
+  sendMessage(event) {
+    event.preventDefault();
+    const groupId = this.props.group._id;
+    sendMessage.call({ groupId: groupId, text: this.refs.text.value }, err => {
+      if (err) {
+        alert(err.reason);
+      } else {
+        this.refs.text.value = '';
+      }
+    });
   }
 }
 

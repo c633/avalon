@@ -9,29 +9,7 @@ export default class GroupRow extends React.Component {
     this.leaveGroup = this.leaveGroup.bind(this);
   }
 
-  joinGroup() {
-    const { router } = this.context;
-    const groupId = this.props.group._id;
-    join.call({ groupId: groupId }, err => {
-      if (err) {
-        alert(err.reason);
-      } else {
-        router.push(`/groups/${groupId}`);
-      }
-    });
-  }
-
-  leaveGroup() {
-    const { router } = this.context;
-    const groupId = this.props.group._id;
-    leave.call({ groupId: groupId }, err => {
-      if (err) {
-        alert(err.reason);
-      } else {
-        router.push(`/`);
-      }
-    });
-  }
+  // REGION: Component Specifications
 
   render() {
     const { group } = this.props;
@@ -41,7 +19,7 @@ export default class GroupRow extends React.Component {
     return (
       <tr>
         <td>
-          <a>{group.name}</a>
+          <strong>{group.name}</strong>
           <br/>
           <small>Owner: {group.getOwner().username}</small>
         </td>
@@ -77,6 +55,32 @@ export default class GroupRow extends React.Component {
         </td>
       </tr>
     );
+  }
+
+  // REGION: Handlers
+
+  joinGroup() {
+    const { router } = this.context;
+    const groupId = this.props.group._id;
+    join.call({ groupId: groupId }, err => {
+      if (err) {
+        alert(err.reason);
+      } else {
+        router.push(`/groups/${groupId}`);
+      }
+    });
+  }
+
+  leaveGroup() {
+    const { router } = this.context;
+    const groupId = this.props.group._id;
+    leave.call({ groupId: groupId }, err => {
+      if (err) {
+        alert(err.reason);
+      } else {
+        router.push(`/`);
+      }
+    });
   }
 }
 

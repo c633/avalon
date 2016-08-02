@@ -5,6 +5,8 @@ export default class PlayerCard extends React.Component {
     super(props);
   }
 
+  // REGION: Component Specifications
+
   render() {
     const { playersCount, isLeader, isMember, isGuessed, selectable, user, role, side, status } = this.props;
     return (
@@ -39,7 +41,4 @@ PlayerCard.propTypes = {
   role: React.PropTypes.string,
   side: React.PropTypes.bool,
   status: React.PropTypes.string,
-};
-
-PlayerCard.contextTypes = {
 };
