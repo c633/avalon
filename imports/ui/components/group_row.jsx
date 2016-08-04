@@ -25,8 +25,8 @@ export default class GroupRow extends React.Component {
         </td>
         <td>
           <ul className="list-inline">
-            {group.getPlayers().map(p =>
-              <li key={p.user._id}><img src="images/avatar.png" className="avatar" alt="Avatar"/></li>
+            {group.players.map(p =>
+              <li key={p.id}><a href={`/users/${p.id}`}><img src="images/avatar.png" className="avatar" alt="Avatar"/></a></li>
             )}
           </ul>
         </td>

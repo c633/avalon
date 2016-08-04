@@ -30,12 +30,12 @@ export default class AdditionalRolesPanel extends React.Component {
             <div className="clearfix"></div>
             {
               [Groups.Roles.PERCIVAL, Groups.Roles.MORDRED, Groups.Roles.MORGANA, Groups.Roles.OBERON].map(r =>
-                <RoleCard key={r} onClick={() => this.onRoleCardClick(r)} role={r} selected={this.state.selectedAdditionalRoles.indexOf(r) != -1}/>
+                <RoleCard key={r} onClick={() => this.onRoleCardClick(r)} role={r} isSelected={this.state.selectedAdditionalRoles.indexOf(r) != -1}/>
               )
             }
           </div>
           {
-            group.getPlayers().length >= Groups.MIN_PLAYERS_COUNT ?
+            group.players.length >= Groups.MIN_PLAYERS_COUNT ?
               <div className="form-group">
                 <button className="btn btn-success" onClick={this.start}>Start playing</button>
               </div> : null

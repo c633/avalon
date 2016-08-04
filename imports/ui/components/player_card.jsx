@@ -1,4 +1,5 @@
 import React from 'react';
+import { Groups } from '../../api/groups/groups.js'; // Constants only
 
 export default class PlayerCard extends React.Component {
   constructor(props) {
@@ -8,7 +9,10 @@ export default class PlayerCard extends React.Component {
   // REGION: Component Specifications
 
   render() {
-    const { playersCount, isLeader, isMember, isGuessed, selectable, user, role, side, status } = this.props;
+    const { selectable, isMember, isGuessed, group, player } = this.props;
+    const playersCount = group.players.length >= Groups.MIN_PLAYERS_COUNT ? group.players.length : Groups.MIN_PLAYERS_COUNT;
+    const isLeader = group.hasLeader(player._id);
+    const { role, side, status } = group.findInformation(Meteor.userId(), player._id);
     return (
       <div onClick={this.props.onClick} className={`avalon-col-card-player-${playersCount} profile_details`}>
         <button className={`well profile_view avalon-card${selectable ? '' : '-unselectable'} ${side != null ? `avalon-${side ? 'good' : 'evil'}` : ''}`}>
@@ -16,7 +20,7 @@ export default class PlayerCard extends React.Component {
             {isLeader ? <img src="/images/items/leader.png" className="img-responsive avalon-mark-top"/> : null}
             {isMember ? <img src="/images/items/member.png" className="img-responsive avalon-mark-right"/> : null}
             {isGuessed ? <img src="/images/items/selected.png" className="img-responsive avalon-mark-right"/> : null}
-            <p><strong>{user.username}{Meteor.userId() == user._id ? ' (Me)' : ''}</strong></p>
+            <p><strong>{player.username}{Meteor.userId() == player._id ? ' (Me)' : ''}</strong></p>
             <img src="/images/avatar.png" className="img-responsive avalon-card-player-avatar"/>
           </div>
           <div className="col-xs-12 bottom text-center">
@@ -32,13 +36,9 @@ export default class PlayerCard extends React.Component {
 }
 
 PlayerCard.propTypes = {
-  playersCount: React.PropTypes.number,
-  isLeader: React.PropTypes.bool,
+  selectable: React.PropTypes.bool,
   isMember: React.PropTypes.bool,
   isGuessed: React.PropTypes.bool,
-  selectable: React.PropTypes.bool,
-  user: React.PropTypes.object,
-  role: React.PropTypes.string,
-  side: React.PropTypes.bool,
-  status: React.PropTypes.string,
+  group: React.PropTypes.object,
+  player: React.PropTypes.object,
 };

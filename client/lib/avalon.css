@@ -1,4 +1,6 @@
-/* Override */
+/* 
+ * Override
+ */
 
 footer {
   margin-left: 0px;
@@ -68,7 +70,14 @@ h3 small {
   color: #A0A0A0;
 }
 
-/* Modified */
+.progress.progress_sm {
+  margin-top: 18px;
+  margin-bottom: 0px; 
+}
+
+/*
+ * Modified
+ */
 
 .login_content span {
   float: left;
@@ -120,7 +129,13 @@ footer {
   color: #FAFAFA;
 }
 
-/* Custom */
+.avatar-view {
+  width: 80%;
+}
+
+/*
+ * Custom
+ */
 
 #app {
   background-image: url("/images/background.jpg");
@@ -132,11 +147,15 @@ footer {
   margin: -10px 0px 10px;
 }
 
+/* Auth pages */
+
 .avalon-error,
 .avalon-error .form-control {
   color: #AA0000 !important;
   border-color: #A94442 !important;
 }
+
+/* Group page */
 
 .avalon-good {
   color: #26B99A;
@@ -271,4 +290,19 @@ button.avalon-card-unselectable > div {
 
 .avalon-summary-result {
   height: 24px;
+}
+
+/* User page */
+
+.avalon-chart {
+  width: 100%;
+  height: 280px;
+}
+
+tspan {
+  fill: #4A4A4A;
+}
+
+.progress {
+  background-color: #D9534F;
 }

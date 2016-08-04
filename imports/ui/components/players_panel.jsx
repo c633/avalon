@@ -84,14 +84,12 @@ export default class PlayersPanel extends React.Component {
           <div className="row">
             <div className="clearfix"></div>
             {group.getPlayers().map((player, index) => {
-              const { role, side, status } = group.findInformation(Meteor.userId(), index);
               return <PlayerCard
                 key={player.user._id} onClick={() => { if (selectable) this.onPlayerCardClick(index); }}
-                playersCount={group.players.length >= Groups.MIN_PLAYERS_COUNT ? group.players.length : Groups.MIN_PLAYERS_COUNT}
-                isLeader={group.hasLeader(player.user._id)}
+                selectable={selectable}
                 isMember={group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id))}
                 isGuessed={this.state.guessedIndex == index}
-                selectable={selectable} user={player.user} role={role} side={side} status={status}/>
+                group={group} player={player.user}/>
             })}
           </div>
           <div className="form-group">

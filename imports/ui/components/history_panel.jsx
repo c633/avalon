@@ -17,17 +17,19 @@ export default class HistoryPanel extends React.Component {
       <ul ref="messagesContainer" className="list-unstyled top_profiles scroll-view">
         {
           group.messages.map((m, i) => {
-            const sender = players[m.senderIndex].user;
-            const otherPlayer = Meteor.userId() != sender._id;
+            const otherPlayer = Meteor.userId() != m.senderId;
             return (
               <li key={i} className="media event">
-                <a className={`pull-${otherPlayer ? 'left' : 'right'} border-${otherPlayer ? 'blue' : 'green'} profile_thumb`}>
-                  <img src="/images/avatar.png" className={`img-responsive fa fa-user ${otherPlayer ? 'blue' : 'green'}`}/>
+                <a className={`pull-${otherPlayer ? 'left' : 'right'} border-${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'} profile_thumb`}>
+                  <img src="/images/avatar.png" className={`img-responsive fa fa-user ${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'}`}/>
                 </a>
                 <div className="media-body">
-                  <strong>{sender.username}</strong>
+                  <strong>{Meteor.users.findOne(m.senderId).username}</strong>
                   <p>{m.text}</p>
-                  <p><small>{m.sentAt.toLocaleString('en-US', {hour12: false})}</small></p>
+                  <p>
+                    <small>{m.sentAt.toLocaleString('en-US', { hour12: false })}</small>
+                    {!group.hasPlayer(m.senderId) ? <span className="pull-right"><small>Left group</small></span> : null}
+                  </p>
                 </div>
               </li>
             )
@@ -85,7 +87,7 @@ export default class HistoryPanel extends React.Component {
           <div className="clearfix"></div>
         </div>
         <div className="x_content">
-          <div className="" role="tabpanel" data-example-id="togglable-tabs">
+          <div role="tabpanel">
             <ul className="nav nav-tabs bar_tabs" role="tablist">
               <li role="presentation" className="active"><a href="#tab_messages" role="tab" data-toggle="tab" aria-expanded="false">Messages</a></li>
               <li role="presentation" className=""><a href="#tab_summaries" role="tab" data-toggle="tab" aria-expanded="true">Summaries</a></li>

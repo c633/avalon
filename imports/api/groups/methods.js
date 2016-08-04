@@ -13,7 +13,7 @@ export const insert = new ValidatedMethod({
     const group = {
       ownerId: this.userId,
       name: name,
-      guessMerlin: null,
+      guessMerlin: undefined,
     };
     return Groups.insert(group);
   },
@@ -51,7 +51,7 @@ export const leave = new ValidatedMethod({
     if (!group.hasPlayer(this.userId)) {
       throw new Meteor.Error('groups.leave.alreadyLeaved', 'Already leaved this group.');
     }
-    if (group.getPlayers().length == 1) { // The last player wants to leave this group
+    if (group.players.length == 1) { // The last player wants to leave this group
       Groups.remove(groupId);
     } else {
       Groups.update(groupId, {
@@ -69,7 +69,7 @@ export const start = new ValidatedMethod({
     additionalRoles: { type: [Number] },
   }).validator(),
   run({ groupId, additionalRoles, reset }) {
-    const group = Groups.findOne(groupId);
+    let group = Groups.findOne(groupId);
     if (!group.hasOwner(this.userId)) {
       throw new Meteor.Error('groups.start.accessDenied', 'Don\'t have permission to start playing.');
     }
@@ -80,7 +80,6 @@ export const start = new ValidatedMethod({
       $set: { missions: [] },
     });
     if (!reset) {
-      group.startNewMission();
       const playersCount = group.players.length;
       const evilPlayersCount = group.getEvilPlayersCount();
       let roles = additionalRoles;
@@ -91,9 +90,12 @@ export const start = new ValidatedMethod({
       Groups.update(groupId, {
         $set: { players: group.players }
       });
+      group = Groups.findOne(groupId); // Update local variable
+      group.startNewMission();
     } else {
       Groups.update(groupId, {
-        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })), guessMerlin: null, messages: [] }
+        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })), messages: [] },
+        $unset: { guessMerlin: true }
       });
     }
   },
@@ -106,8 +108,8 @@ export const selectMembers = new ValidatedMethod({
     memberIndices: { type: [Number] },
   }).validator(),
   run({ groupId, memberIndices }) {
-    const group = Groups.findOne(groupId);
-    if (!group.isSelectedMembersValid(memberIndices)) {
+    let group = Groups.findOne(groupId);
+    if (!group.checkSelectedMembersValidation(memberIndices)) {
       throw new Meteor.Error('groups.selectMembers.invalid', 'Invalid selected mission team members.');
     }
     const lastTeamMemberIndices = {};
@@ -115,6 +117,7 @@ export const selectMembers = new ValidatedMethod({
     Groups.update(groupId, {
       $set: lastTeamMemberIndices
     });
+    group = Groups.findOne(groupId); // Update local variable
     group.startWaitingForApproval();
   },
 });
@@ -168,10 +171,12 @@ export const guess = new ValidatedMethod({
     merlinIndex: { type: Number },
   }).validator(),
   run({ groupId, merlinIndex }) {
-    const group = Groups.findOne(groupId);
+    let group = Groups.findOne(groupId);
     Groups.update(groupId, {
       $set: { guessMerlin: group.players[merlinIndex].role == Groups.Roles.MERLIN }
     });
+    group = Groups.findOne(groupId); // Update local variable
+    group.finish();
   },
 });
 
@@ -187,7 +192,7 @@ export const sendMessage = new ValidatedMethod({
       Groups.update(groupId, {
         $push: {
           messages: {
-            senderIndex: group.players.map(p => p.id).indexOf(this.userId),
+            senderId: this.userId,
             text: text,
             sentAt: new Date(),
           }

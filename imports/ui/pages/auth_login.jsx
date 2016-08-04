@@ -38,7 +38,7 @@ export default class AuthLogin extends React.Component {
                   <a href="/signup" className="to_register"> Create Account </a>
                 </p>
                 <div className="clearfix"></div>
-                <br />
+                <br/>
                 <div>
                   <h1><i className="fa fa-paw"></i> Avalon game</h1>
                   <p>©2016 All Rights Reserved.</p>
@@ -58,20 +58,16 @@ export default class AuthLogin extends React.Component {
     const username = this.refs.username.value;
     const password = this.refs.password.value;
     const errors = {};
-
     if (!username) {
       errors.username = 'User name required';
     }
-
     if (!password) {
       errors.password = 'Password required';
     }
-
     this.setState({ errors });
     if (Object.keys(errors).length) {
       return;
     }
-
     Meteor.loginWithPassword(username, password, err => {
       if (err) {
         this.setState({

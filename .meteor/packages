@@ -21,6 +21,7 @@ ecmascript              # Enable ECMAScript2015+ syntax in app code
 react-meteor-data
 twbs:bootstrap
 fortawesome:fontawesome
+bshamblen:morrisjs
 
 # Accounts
 accounts-base

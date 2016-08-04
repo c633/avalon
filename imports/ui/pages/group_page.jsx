@@ -12,7 +12,6 @@ export default class GroupPage extends React.Component {
 
   render() {
     const { group, loaded } = this.props;
-    let content = null;
     return loaded ? (
       <div>
         <div className="page-title">

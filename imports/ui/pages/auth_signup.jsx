@@ -38,7 +38,7 @@ export default class AuthSignup extends React.Component {
                   <a href="/login" className="to_register"> Login here </a>
                 </p>
                 <div className="clearfix"></div>
-                <br />
+                <br/>
                 <div>
                   <h1><i className="fa fa-paw"></i> Avalon game</h1>
                   <p>©2016 All Rights Reserved.</p>
@@ -58,16 +58,13 @@ export default class AuthSignup extends React.Component {
     const username = this.refs.username.value;
     const password = this.refs.password.value;
     const errors = {};
-
     if (!username) {
       errors.username = 'User name required';
     }
-
     this.setState({ errors });
     if (Object.keys(errors).length) {
       return;
     }
-
     Accounts.createUser({ // Force create new user
       username: username,
       password: password,

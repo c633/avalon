@@ -21,7 +21,11 @@ class GroupsCollection extends Mongo.Collection {
     return super.insert(group, callback);
   }
 
-  remove(selector, callback) {
+  update(selector, modifier) {
+    return super.update(selector, modifier);
+  }
+
+  remove(selector) {
     return super.remove(selector, callback);
   }
 }
@@ -52,7 +56,7 @@ MissionsSchema = new SimpleSchema({
 });
 
 MessagesSchema = new SimpleSchema({
-  senderIndex: { type: Number }, // Index of sender's id which is included in `players.id`
+  senderId: { type: String }, // Sender's id
   text: { type: String },
   sentAt: { type: Date },
 });
@@ -62,7 +66,7 @@ Groups.schema = new SimpleSchema({
   name: { type: String },
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
-  guessMerlin: { type: Boolean, optional: true, defaultValue: null }, // Indicate whether Assassin correctly guesses Merlin's identity or not
+  guessMerlin: { type: Boolean, optional: true }, // Indicate whether Assassin correctly guesses Merlin's identity or not
   messages: { type: [MessagesSchema], defaultValue: [] }
 });
 
@@ -124,7 +128,7 @@ Groups.helpers({
         const summary = { memberIndices: t.memberIndices, denierIndices: [], failVotesCount: null, result: undefined };
         if (t.memberIndices.length != 0 && t.approvals.indexOf(null) == -1) {
           summary.denierIndices = t.approvals.map((a, i) => a ? -1 : i).filter(i => i >= 0);
-          if (t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) {
+          if (t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) { // Denied
             summary.result = null;
           } else if (t.successVotes.indexOf(null) == -1) {
             summary.failVotesCount = t.successVotes.filter(a => !a).length;
@@ -137,7 +141,11 @@ Groups.helpers({
   },
   startNewMission() {
     const summaryResults = this.getSummaries().map(m => m[m.length - 1].result);
-    if (summaryResults.filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN || summaryResults.filter(m => !m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
+    if (summaryResults.filter(m => !m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
+      this.finish();
+      return;
+    } else if (summaryResults.filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
+      this.startGuessingMerlin();
       return;
     }
     const newMission = { teams: [] };
@@ -149,32 +157,81 @@ Groups.helpers({
   },
   startSelectingMembers() {
     if (this.missions[this.missions.length - 1].teams.length >= Groups.MISSION_TEAMS_COUNT) {
+      this.finish();
       return;
     }
     const newTeam = {};
-    newTeam[`missions.${this.missions.length - 1}.teams`] = { memberIndices: [], approvals: [], successVotes: [] };
+    // const memberIndices = _.shuffle(Array.from(new Array(this.players.length), (_, i) => i)).slice(0, Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]); // TEST
+    const memberIndices = [];
+    newTeam[`missions.${this.missions.length - 1}.teams`] = { memberIndices: memberIndices, approvals: [], successVotes: [] };
     Groups.update(this._id, {
       $push: newTeam
     });
+    // FIXME: Remove redundancy (@ref 'methods' `selectedMembers`)
+    this.missions[this.missions.length - 1].teams.push({ memberIndices: memberIndices, approvals: [], successVotes: [] }); // Update local variable
+    if (!this.isSelectingMembers()) {
+      this.startWaitingForApproval();
+    }
   },
   startWaitingForApproval() {
     const initialApprovals = {};
-    initialApprovals[`missions.${this.missions.length - 1}.teams.${this.missions[this.missions.length - 1].teams.length - 1}.approvals`] = Array.from(new Array(this.players.length), () => null);
+    // const approvals = Array.from(new Array(this.players.length), () => Math.random() > 0.5 ? true : false); // TEST
+    const approvals = Array.from(new Array(this.players.length), () => null);
+    initialApprovals[`missions.${this.missions.length - 1}.teams.${this.missions[this.missions.length - 1].teams.length - 1}.approvals`] = approvals;
     Groups.update(this._id, {
       $set: initialApprovals
     });
+    // FIXME: Remove redundancy (@ref 'methods' `approve`)
+    this.getLastTeam().approvals = approvals; // Update local variable
+    if (this.isDenied()) {
+      this.startSelectingMembers();
+    } else if (!this.isWaitingForApproval()) {
+      this.startWaitingForVote();
+    }
   },
   startWaitingForVote() {
     const lastMission = this.missions[this.missions.length - 1];
     const initialVotes = {};
+    // const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role > 0 ? true : Math.random() > 0.3 ? true : false); // TEST
     const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role > 0 ? null : null);
     initialVotes[`missions.${this.missions.length - 1}.teams.${lastMission.teams.length - 1}.successVotes`] = successVotes;
     Groups.update(this._id, {
       $set: initialVotes
     });
+    // FIXME: Remove redundancy (@ref 'methods' `vote`)
     this.getLastTeam().successVotes = successVotes; // Update local variable
     if (!this.isWaitingForVote()) {
       this.startNewMission();
+    }
+  },
+  startGuessingMerlin() {
+    Groups.update(this._id, {
+      $set: { guessMerlin: null }
+    });
+  },
+  finish() {
+    const playerActivities = [];
+    const result = this.getSituation().result;
+    for (const p of this.players) {
+      playerActivities.push({ id: p.id, activity: { finishedAt: new Date(), role: p.role, result: p.role > 0 ? result : !result, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 } });
+    };
+    for (const m of this.getSummaries()) {
+      for (const t of m) {
+        for (const i of t.memberIndices) {
+          if (t.result == null) {
+            playerActivities[i].activity.deniedTeamsCount++;
+          } else if (t.result) {
+            playerActivities[i].activity.successTeamsCount++;
+          } else {
+            playerActivities[i].activity.failTeamsCount++;
+          }
+        }
+      };
+    };
+    for (const p of playerActivities) {
+      Meteor.users.update(p.id, {
+        $push: { activities: p.activity }
+      });
     }
   },
   getLeader() {
@@ -189,7 +246,7 @@ Groups.helpers({
   isSelectingMembers() {
     return this.getLastTeam() != null && this.getLastTeam().memberIndices.length == 0;
   },
-  isSelectedMembersValid(selectedMemberIndices) {
+  checkSelectedMembersValidation(selectedMemberIndices) {
     return selectedMemberIndices.length != Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1] || selectedMemberIndices.find(i => i >= this.players.length) != undefined ? false : true;
   },
   isWaitingForApproval() {
@@ -202,12 +259,12 @@ Groups.helpers({
     return this.getLastTeam() != null && this.getLastTeam().successVotes.indexOf(null) != -1;
   },
   isGuessingMerlin() {
-    return this.getSummaries().map(m => m[m.length - 1].result).filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN && this.guessMerlin == null;
+    return this.guessMerlin === null;
   },
   getSituation() {
-    let situation = {status: '', slot: undefined, result: undefined };
+    const situation = { status: '', slot: undefined, result: undefined };
     if (!this.isPlaying()) {
-      const playersCount = this.getPlayers().length;
+      const playersCount = this.players.length;
       if (playersCount < Groups.MIN_PLAYERS_COUNT) {
         situation.status = 'Waiting for more players';
         situation.slot = null;
@@ -229,19 +286,20 @@ Groups.helpers({
         situation.status = 'Waiting for Assassin to guess Merlin\'s identity';
         situation.result = null;
       } else {
-        const result = this.guessMerlin == null || this.guessMerlin ? false : true;
+        const result = this.guessMerlin === undefined || this.guessMerlin ? false : true;
         situation.status = result ? 'Good players win' : 'Evil players win';
         situation.result = result;
       }
     }
     return situation;
   },
-  findInformation(userId, playerIndex) {
-    const player = this.getPlayers()[playerIndex];
-    const otherPlayer = userId != player.user._id;
+  findInformation(userId, playerId) {
+    const playerIndex = this.players.map(p => p.id).indexOf(playerId);
+    const playerRole = this.players[playerIndex].role;
+    const otherPlayer = userId != playerId;
     let role = '';
     let side = null;
-    if (player.role == Groups.Roles.UNDECIDED) {
+    if (playerRole == Groups.Roles.UNDECIDED) {
       role = 'Undecided';
     } else {
       switch (this.findPlayerRole(userId)) {
@@ -249,28 +307,28 @@ Groups.helpers({
         [role, side] = otherPlayer ? ['Unknown', null] : ['Servant', true];
         break;
       case Groups.Roles.MERLIN:
-        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.MORDRED ? ['Good', true] : ['Evil', false] : ['Merlin', true];
+        [role, side] = otherPlayer ? playerRole > 0 || playerRole == Groups.Roles.MORDRED ? ['Good', true] : ['Evil', false] : ['Merlin', true];
         break;
       case Groups.Roles.PERCIVAL:
-        [role, side] = otherPlayer ? player.role == Groups.Roles.MERLIN || player.role == Groups.Roles.MORGANA ? ['Merlin', true] : ['Unknown', null] : ['Percival', true];
+        [role, side] = otherPlayer ? playerRole == Groups.Roles.MERLIN || playerRole == Groups.Roles.MORGANA ? ['Merlin', true] : ['Unknown', null] : ['Percival', true];
         break;
       case Groups.Roles.MINION:
-        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Minion', false];
+        [role, side] = otherPlayer ? playerRole > 0 || playerRole == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Minion', false];
         break;
       case Groups.Roles.ASSASSIN:
-        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Assassin', false];
+        [role, side] = otherPlayer ? playerRole > 0 || playerRole == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Assassin', false];
         break;
       case Groups.Roles.MORDRED:
-        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Mordred', false];
+        [role, side] = otherPlayer ? playerRole > 0 || playerRole == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Mordred', false];
         break;
       case Groups.Roles.MORGANA:
-        [role, side] = otherPlayer ? player.role > 0 || player.role == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Morgana', false];
+        [role, side] = otherPlayer ? playerRole > 0 || playerRole == Groups.Roles.OBERON ? ['Good', true] : ['Evil', false] : ['Morgana', false];
         break;
       case Groups.Roles.OBERON:
         [role, side] = otherPlayer ? ['Unknown', null] : ['Oberon', false];
         break;
       case null:
-        [role, side] = ['Unknown', null]; // [Groups.RoleNames()[player.role], player.role > 0 ? true : false];
+        [role, side] = ['Unknown', null]; // [Groups.RoleNames()[playerRole], playerRole > 0 ? true : false];
         break;
       }
     }
@@ -301,7 +359,7 @@ Groups.helpers({
       suggestion = 'Click one player card then press \'Guess Merlin\' button to guess who is Merlin';
     }
     return suggestion;
-  },
+  }
 });
 
 Groups.MIN_PLAYERS_COUNT = 5;
@@ -309,19 +367,19 @@ Groups.MAX_PLAYERS_COUNT = 10;
 Groups.Roles = {
   UNDECIDED: 0,
   // Good
-  SERVANT: 1,         // Loyal servant of Arthur: only knows how many evil players exist, not who they are
-  MERLIN: 2,          // Knows who the evil players are
-  PERCIVAL: 3,        // Knows who Merlin is and is in a position to help protect Merlin's identity
+  SERVANT: 1,         // Loyal servant of Arthur: only knows how many evil players exist, not who they are (blue sky, #50C1CF)
+  MERLIN: 2,          // Knows who the evil players are (green, #1ABB9C)
+  PERCIVAL: 3,        // Knows who Merlin is and is in a position to help protect Merlin's identity (blue, #3498DB)
   // Evil
-  MINION: -1,         // Minion of Mordred: are made aware of each other without the good players knowing
-  ASSASSIN: -2,       // Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game
-  MORDRED: -3,        // Does not reveal his identity to Merlin, leaving Merlin in the dark
-  MORGANA: -4,        // Appears to be Merlin, revealing herself to Percival as Merlin
-  OBERON: -5,         // Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players
+  MINION: -1,         // Minion of Mordred: are made aware of each other without the good players knowing (orange, #F39C12)
+  ASSASSIN: -2,       // Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game (red, #E74C3C)
+  MORDRED: -3,        // Does not reveal his identity to Merlin, leaving Merlin in the dark (purple, #9B59B6)
+  MORGANA: -4,        // Appears to be Merlin, revealing herself to Percival as Merlin (dark, #34495E)
+  OBERON: -5,         // Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players (aero, #9CC2CB)
 };
 Groups.RoleNames = () => {
-  var names = {};
-  for(var role in Groups.Roles){
+  const names = {};
+  for (const role in Groups.Roles) {
     names[Groups.Roles[role]] = role;
   }
   return names;
