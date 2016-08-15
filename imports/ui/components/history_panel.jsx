@@ -47,7 +47,7 @@ export default class HistoryPanel extends React.Component {
                 <div key={i} className="panel">
                   <div className="panel-heading" role="tab" aria-expanded="true">
                     <span className={`panel-title${lastResult === undefined ? '' : ` avalon-${lastResult ? 'good' : 'evil'}`}`}><strong>Mission {i + 1}</strong> ({lastResult === undefined ? 'Playing' : lastResult ? 'Success' : 'Fail'})</span>
-                    <img src={`/images/items/${lastResult === undefined ? 'playing' : `mission-${lastResult ? 'success' : 'fail'}` }.png`} className="pull-right avalon-summary-result"/>
+                    <img src={`/images/tokens/${lastResult === undefined ? 'playing' : `mission-${lastResult ? 'success' : 'fail'}` }.png`} className="pull-right avalon-summary-result"/>
                   </div>
                   <div className="panel-collapse collapse in" role="tabpanel">
                     <div className="panel-body">

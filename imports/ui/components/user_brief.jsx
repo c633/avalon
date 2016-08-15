@@ -14,7 +14,13 @@ export default class UserBrief extends React.Component {
     return (
       <div>
         <div className="profile_img">
-          <img className="img-responsive avatar-view avalon-user-avatar" src="/images/avatar.png" alt="Avatar" title="Change the avatar"/>
+          <img className="img-responsive avatar-view avalon-avatar" src="/images/avatar.png" alt="Avatar" title="Avatar"/>
+          {
+            Meteor.userId() == user._id ?
+              <label className="btn btn-success btn-file">
+                  Change avatar<input type="file" style={{ display: 'none' }}/>
+              </label> : null
+          }
         </div>
         <h3>{user.username}</h3>
         <h4>Achievement</h4>

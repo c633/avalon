@@ -17,8 +17,8 @@ export default class RoleCard extends React.Component {
       <div onClick={this.props.onClick} className="avalon-col-card-role profile_details">
         <button className="well profile_view avalon-card">
           <div className="col-sm-12">
-            {isSelected ? <img src="/images/items/selected.png" className="img-responsive avalon-mark-right"/> : null}
-            <img src={`/images/characters/${image}.jpg`} className="img-responsive"/>
+            {isSelected ? <img src="/images/tokens/selected.png" className="img-responsive avalon-mark-right"/> : null}
+            <img src={`/images/roles/${image}.jpg`} className="img-responsive"/>
             <p className={`avalon-${side}`}><strong>{side}</strong></p>
           </div>
           <div className="col-xs-12 bottom text-center">

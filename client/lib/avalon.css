@@ -129,8 +129,8 @@ footer {
   color: #FAFAFA;
 }
 
-.avatar-view {
-  width: 80%;
+.profile_img {
+  text-align: center;
 }
 
 /*
@@ -251,11 +251,14 @@ button.avalon-card-unselectable > div {
   width: 20%;
 }
 
-.avalon-card-player-avatar {
+.avalon-avatar {
   width: 75%;
+  margin: 5px auto;
+}
+
+.avalon-card-player-avatar {
   max-height: 84px;
   max-width: 84px;
-  margin: 5px auto;
 }
 
 .avalon-card-text {

@@ -17,18 +17,18 @@ export default class PlayerCard extends React.Component {
       <div onClick={this.props.onClick} className={`avalon-col-card-player-${playersCount} profile_details`}>
         <button className={`well profile_view avalon-card${selectable ? '' : '-unselectable'} ${side != null ? `avalon-${side ? 'good' : 'evil'}` : ''}`}>
           <div className="col-sm-12">
-            {isLeader ? <img src="/images/items/leader.png" className="img-responsive avalon-mark-top"/> : null}
-            {isMember ? <img src="/images/items/member.png" className="img-responsive avalon-mark-right"/> : null}
-            {isGuessed ? <img src="/images/items/selected.png" className="img-responsive avalon-mark-right"/> : null}
+            {isLeader ? <img src="/images/tokens/leader.png" className="img-responsive avalon-mark-top"/> : null}
+            {isMember ? <img src="/images/tokens/member.png" className="img-responsive avalon-mark-right"/> : null}
+            {isGuessed ? <img src="/images/tokens/selected.png" className="img-responsive avalon-mark-right"/> : null}
             <p><strong>{player.username}{Meteor.userId() == player._id ? ' (Me)' : ''}</strong></p>
-            <img src="/images/avatar.png" className="img-responsive avalon-card-player-avatar"/>
+            <img src="/images/avatar.png" className="img-responsive avalon-avatar avalon-card-player-avatar"/>
           </div>
           <div className="col-xs-12 bottom text-center">
             <div className="col-xs-12 col-sm-12 emphasis">
               <h2 className="avalon-card-text"><strong>{role}</strong></h2>
             </div>
           </div>
-          {status != '' ? <img src={`/images/items/${status.replace(' ', '-').toLowerCase()}.png`} className="img-responsive avalon-mark-bottom"/> : null}
+          {status != '' ? <img src={`/images/tokens/${status.replace(' ', '-').toLowerCase()}.png`} className="img-responsive avalon-mark-bottom"/> : null}
         </button>
       </div>
     );

@@ -33,7 +33,7 @@ export default class PlayersPanel extends React.Component {
               summaries.length > 0 ?
                 <div className="col-md-4 col-xs-4">
                   <div className="avalon-hint">
-                    <img src="/images/items/leader.png" className="img-responsive"/>
+                    <img src="/images/tokens/leader.png" className="img-responsive"/>
                     <div>
                       <p>Mission {summaries.length}, team {summaries[summaries.length - 1].length}</p>
                       <p>Leader: <strong>{leader && leader.username}</strong></p>
@@ -45,7 +45,7 @@ export default class PlayersPanel extends React.Component {
               group.isSelectingMembers() ?
                 <div className="col-md-2 col-xs-2">
                   <div className="avalon-hint">
-                    <img src="/images/items/member.png" className="img-responsive"/>
+                    <img src="/images/tokens/member.png" className="img-responsive"/>
                     <p>Team member</p>
                   </div>
                 </div> : null
@@ -55,7 +55,7 @@ export default class PlayersPanel extends React.Component {
                 ['Approved', 'Denied'].map(a =>
                   <div key={a} className="col-md-2 col-xs-2">
                     <div className="avalon-hint">
-                      <img src={`/images/items/${a.toLowerCase()}.png`} className="img-responsive"/>
+                      <img src={`/images/tokens/${a.toLowerCase()}.png`} className="img-responsive"/>
                       <p>{a}</p>
                     </div>
                   </div>
@@ -66,7 +66,7 @@ export default class PlayersPanel extends React.Component {
                 ['Voted Success', 'Voted Fail'].map(v =>
                   <div key={v} className="col-md-2 col-xs-2">
                     <div className="avalon-hint">
-                      <img src={`/images/items/${v.replace(' ', '-').toLowerCase()}.png`} className="img-responsive"/>
+                      <img src={`/images/tokens/${v.replace(' ', '-').toLowerCase()}.png`} className="img-responsive"/>
                       <p>{v}</p>
                     </div>
                   </div>
