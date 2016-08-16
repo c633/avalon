@@ -22,7 +22,7 @@ export default class Navbar extends React.Component {
               user ?
                 <li className="">
                   <a href="javascript:;" className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    <img src="/images/avatar.png" alt=""/>{user.username}
+                    <img src={user.getAvatarSrc()} alt=""/>{user.username}
                   </a>
                   <ul className="dropdown-menu dropdown-usermenu pull-right">
                     <li><a href={`/users/${user._id}`}>Profile</a></li>
@@ -45,7 +45,6 @@ export default class Navbar extends React.Component {
 
   logout() {
     Meteor.logout();
-    // this.context.router.push('/'); // Force redirect to lobby
   }
 }
 

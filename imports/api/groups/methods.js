@@ -73,13 +73,13 @@ export const start = new ValidatedMethod({
     if (!group.hasOwner(this.userId)) {
       throw new Meteor.Error('groups.start.accessDenied', 'Don\'t have permission to start playing.');
     }
-    if (additionalRoles.filter(r => r < 0).length > group.getEvilPlayersCount() - 1) {
-      throw new Meteor.Error('groups.start.invalidAdditionalRoles', 'Invalid selected additional roles.');
-    }
     Groups.update(groupId, {
       $set: { missions: [] },
     });
     if (!reset) {
+      if (!group.checkSelectedAdditionalRolesValidation(additionalRoles)) {
+        throw new Meteor.Error('groups.start.invalidAdditionalRoles', 'Invalid selected additional roles.');
+      }
       const playersCount = group.players.length;
       const evilPlayersCount = group.getEvilPlayersCount();
       let roles = additionalRoles;
@@ -112,10 +112,8 @@ export const selectMembers = new ValidatedMethod({
     if (!group.checkSelectedMembersValidation(memberIndices)) {
       throw new Meteor.Error('groups.selectMembers.invalid', 'Invalid selected mission team members.');
     }
-    const lastTeamMemberIndices = {};
-    lastTeamMemberIndices[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.memberIndices`] = memberIndices;
     Groups.update(groupId, {
-      $set: lastTeamMemberIndices
+      $set: { [`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.memberIndices`]: memberIndices }
     });
     group = Groups.findOne(groupId); // Update local variable
     group.startWaitingForApproval();
@@ -130,10 +128,8 @@ export const approve = new ValidatedMethod({
   }).validator(),
   run({ groupId, approval }) {
     let group = Groups.findOne(groupId);
-    const lastTeamApproval = {};
-    lastTeamApproval[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.approvals.${group.players.map(p => p.id).indexOf(this.userId)}`] = approval;
     Groups.update(groupId, {
-      $set: lastTeamApproval
+      $set: { [`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.approvals.${group.players.map(p => p.id).indexOf(this.userId)}`]: approval }
     });
     group = Groups.findOne(groupId); // Update local variable
     if (group.isDenied()) {
@@ -152,10 +148,8 @@ export const vote = new ValidatedMethod({
   }).validator(),
   run({ groupId, success }) {
     let group = Groups.findOne(groupId);
-    const lastTeamSuccessVote = {};
-    lastTeamSuccessVote[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.successVotes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(this.userId))}`] = success;
     Groups.update(groupId, {
-      $set: lastTeamSuccessVote
+      $set: { [`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.successVotes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(this.userId))}`]: success }
     });
     group = Groups.findOne(groupId); // Update local variable
     if (!group.isWaitingForVote()) {

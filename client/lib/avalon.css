@@ -45,7 +45,8 @@ ul.top_profiles li:nth-child(odd) {
 }
 
 .media .profile_thumb {
-  padding: 5px;
+  padding: 0px;
+  border: none;
 }
 
 .accordion .panel,
@@ -178,7 +179,8 @@ footer {
 }
 
 .avalon-card-unselectable {
-  cursor: default;
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
 .avalon-card p,

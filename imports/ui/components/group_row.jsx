@@ -25,8 +25,12 @@ export default class GroupRow extends React.Component {
         </td>
         <td>
           <ul className="list-inline">
-            {group.players.map(p =>
-              <li key={p.id}><a href={`/users/${p.id}`}><img src="images/avatar.png" className="avatar" alt="Avatar"/></a></li>
+            {group.getPlayers().map(p =>
+              <li key={p.user._id}>
+                <a href={`/users/${p.user._id}`}>
+                  <img src={p.user.getAvatarSrc()} className="avatar" alt="Avatar" data-toggle="tooltip" data-placement="top" title={p.user.username}/>
+                </a>
+              </li>
             )}
           </ul>
         </td>
@@ -51,10 +55,16 @@ export default class GroupRow extends React.Component {
                 <a className="btn btn-sm btn-success" onClick={this.joinGroup}><i className="fa fa-sign-in"></i> Join</a> :
                 <a className="btn btn-sm btn-danger" onClick={this.leaveGroup}><i className="fa fa-sign-out"></i> Leave</a> : null
           }
-          {joined ? <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark"><i className="fa fa-group"></i> Go to</a> : null}
+          <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark"><i className="fa fa-group"></i> Go to</a>
         </td>
       </tr>
     );
+  }
+
+  // REGION: Lifecycle Methods
+
+  componentDidMount() {
+    $('[data-toggle="tooltip"]').tooltip();
   }
 
   // REGION: Handlers

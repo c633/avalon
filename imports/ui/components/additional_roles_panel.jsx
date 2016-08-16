@@ -2,12 +2,11 @@ import React from 'react';
 import { Groups } from '../../api/groups/groups.js'; // Constants only
 import { start } from '../../api/groups/methods.js';
 import RoleCard from './role_card.jsx';
-import ErrorModal from './error_modal.jsx';
 
 export default class AdditionalRolesPanel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { selectedAdditionalRoles: [], errorModal: { isShowing: false, reason: '' } };
+    this.state = { selectedAdditionalRoles: [] };
     this.start = this.start.bind(this);
     this.onRoleCardClick = this.onRoleCardClick.bind(this);
   }
@@ -29,9 +28,13 @@ export default class AdditionalRolesPanel extends React.Component {
             </div>
             <div className="clearfix"></div>
             {
-              [Groups.Roles.PERCIVAL, Groups.Roles.MORDRED, Groups.Roles.MORGANA, Groups.Roles.OBERON].map(r =>
-                <RoleCard key={r} onClick={() => this.onRoleCardClick(r)} role={r} isSelected={this.state.selectedAdditionalRoles.indexOf(r) != -1}/>
-              )
+              [Groups.Roles.PERCIVAL, Groups.Roles.MORDRED, Groups.Roles.MORGANA, Groups.Roles.OBERON].map(r => {
+                const isSelected = this.state.selectedAdditionalRoles.indexOf(r) != -1; 
+                const isSelectable = isSelected ||
+                  this.state.selectedAdditionalRoles.filter(r => r < 0).length < group.getEvilPlayersCount() - 1 ||
+                  (r == Groups.Roles.PERCIVAL && this.state.selectedAdditionalRoles.indexOf(Groups.Roles.MORGANA) != -1);
+                return <RoleCard key={r} onClick={() => { if (isSelectable) this.onRoleCardClick(r); }} isSelectable={isSelectable} isSelected={isSelected} role={r}/>;
+              })
             }
           </div>
           {
@@ -40,7 +43,6 @@ export default class AdditionalRolesPanel extends React.Component {
                 <button className="btn btn-success" onClick={this.start}>Start playing</button>
               </div> : null
           }
-          {this.state.errorModal.isShowing ? <ErrorModal hide={() => this.setState({ errorModal: { isShowing: false } })} reason={this.state.errorModal.reason}/> : null}
         </div>
       </div>
     ) : null;
@@ -52,7 +54,7 @@ export default class AdditionalRolesPanel extends React.Component {
     const { group } = this.props;
     start.call({ groupId: group._id, additionalRoles: this.state.selectedAdditionalRoles, reset: false }, err => {
       if (err) {
-        this.setState({ errorModal: { isShowing: true, reason: group.findSuggestion(Meteor.userId()) } });
+        alert(err.reason);
       }
     });
   }
@@ -62,8 +64,15 @@ export default class AdditionalRolesPanel extends React.Component {
     const index = selectedAdditionalRoles.indexOf(role);
     if (index == -1) {
       selectedAdditionalRoles.push(role);
+      if (role == Groups.Roles.PERCIVAL && selectedAdditionalRoles.indexOf(Groups.Roles.MORGANA) == -1) {
+        selectedAdditionalRoles.push(Groups.Roles.MORGANA);
+      }
     } else {
       selectedAdditionalRoles.splice(index, 1);
+      const percivalIndex = selectedAdditionalRoles.indexOf(Groups.Roles.PERCIVAL);
+      if (role == Groups.Roles.MORGANA && percivalIndex != -1) {
+        selectedAdditionalRoles.splice(percivalIndex, 1);
+      }
     }
     this.setState({ selectedAdditionalRoles: selectedAdditionalRoles });
   }

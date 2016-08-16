@@ -11,20 +11,20 @@ export default class App extends React.Component {
   // REGION: Component Specifications
 
   render() {
-    const { user, children } = this.props;
-    return (
+    const { user, loaded, children } = this.props;
+    return loaded ?
       <div>
         <Navbar user={user}/>
         <div className="container">
           {children}
         </div>
         <Footer/>
-      </div>
-    );
+      </div> : null;
   }
 }
 
 App.propTypes = {
   user: React.PropTypes.object,
+  loaded: React.PropTypes.bool,
   children: React.PropTypes.element,
 };

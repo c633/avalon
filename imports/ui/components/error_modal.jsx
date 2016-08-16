@@ -22,6 +22,8 @@ export default class ErrorModal extends React.Component {
     );
   }
 
+  // REGION: Lifecycle Methods
+
   componentDidMount() {
     $(ReactDom.findDOMNode(this)).modal('show');
     $(ReactDom.findDOMNode(this)).on('hidden.bs.modal', this.props.hide);

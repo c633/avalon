@@ -160,12 +160,10 @@ Groups.helpers({
       this.finish();
       return;
     }
-    const newTeam = {};
     // const memberIndices = _.shuffle(Array.from(new Array(this.players.length), (_, i) => i)).slice(0, Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]); // TEST
     const memberIndices = [];
-    newTeam[`missions.${this.missions.length - 1}.teams`] = { memberIndices: memberIndices, approvals: [], successVotes: [] };
     Groups.update(this._id, {
-      $push: newTeam
+      $push: { [`missions.${this.missions.length - 1}.teams`]: { memberIndices: memberIndices, approvals: [], successVotes: [] } }
     });
     // FIXME: Remove redundancy (@ref 'methods' `selectedMembers`)
     this.missions[this.missions.length - 1].teams.push({ memberIndices: memberIndices, approvals: [], successVotes: [] }); // Update local variable
@@ -174,12 +172,10 @@ Groups.helpers({
     }
   },
   startWaitingForApproval() {
-    const initialApprovals = {};
     // const approvals = Array.from(new Array(this.players.length), () => Math.random() > 0.5 ? true : false); // TEST
     const approvals = Array.from(new Array(this.players.length), () => null);
-    initialApprovals[`missions.${this.missions.length - 1}.teams.${this.missions[this.missions.length - 1].teams.length - 1}.approvals`] = approvals;
     Groups.update(this._id, {
-      $set: initialApprovals
+      $set: { [`missions.${this.missions.length - 1}.teams.${this.missions[this.missions.length - 1].teams.length - 1}.approvals`]: approvals }
     });
     // FIXME: Remove redundancy (@ref 'methods' `approve`)
     this.getLastTeam().approvals = approvals; // Update local variable
@@ -191,12 +187,10 @@ Groups.helpers({
   },
   startWaitingForVote() {
     const lastMission = this.missions[this.missions.length - 1];
-    const initialVotes = {};
     // const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role > 0 ? true : Math.random() > 0.3 ? true : false); // TEST
     const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role > 0 ? null : null);
-    initialVotes[`missions.${this.missions.length - 1}.teams.${lastMission.teams.length - 1}.successVotes`] = successVotes;
     Groups.update(this._id, {
-      $set: initialVotes
+      $set: { [`missions.${this.missions.length - 1}.teams.${lastMission.teams.length - 1}.successVotes`]: successVotes }
     });
     // FIXME: Remove redundancy (@ref 'methods' `vote`)
     this.getLastTeam().successVotes = successVotes; // Update local variable
@@ -245,6 +239,9 @@ Groups.helpers({
   },
   isSelectingMembers() {
     return this.getLastTeam() != null && this.getLastTeam().memberIndices.length == 0;
+  },
+  checkSelectedAdditionalRolesValidation(selectedAdditionalRoles) {
+    return selectedAdditionalRoles.filter(r => r < 0).length <= this.getEvilPlayersCount() - 1 && (selectedAdditionalRoles.indexOf(Groups.Roles.PERCIVAL) != -1 ? selectedAdditionalRoles.indexOf(Groups.Roles.MORGANA) != -1 : true);
   },
   checkSelectedMembersValidation(selectedMemberIndices) {
     return selectedMemberIndices.length != Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1] || selectedMemberIndices.find(i => i >= this.players.length) != undefined ? false : true;
@@ -346,7 +343,7 @@ Groups.helpers({
   findSuggestion(userId) {
     let suggestion;
     if (this.hasOwner(userId) && !this.isPlaying()) {
-      suggestion = `Click to select additional roles if you want (you can only select up to ${this.getEvilPlayersCount() - 1} additional evil role(s))`;
+      suggestion = `Click to select additional roles if you want (you can only select up to ${this.getEvilPlayersCount() - 1} additional evil role(s)). Note that PERCIVAL must be selected with MORGANA`;
     } else if (this.isSelectingMembers() && this.hasLeader(userId)) {
       suggestion = ` Click player cards then press 'Select members' button to select ${Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]} team members`;
     } else if (this.isWaitingForApproval() && this.hasPlayer(userId)) {

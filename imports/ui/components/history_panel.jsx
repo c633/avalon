@@ -17,14 +17,15 @@ export default class HistoryPanel extends React.Component {
       <ul ref="messagesContainer" className="list-unstyled top_profiles scroll-view">
         {
           group.messages.map((m, i) => {
+            const sender = Meteor.users.findOne(m.senderId);
             const otherPlayer = Meteor.userId() != m.senderId;
             return (
               <li key={i} className="media event">
-                <a className={`pull-${otherPlayer ? 'left' : 'right'} border-${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'} profile_thumb`}>
-                  <img src="/images/avatar.png" className={`img-responsive fa fa-user ${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'}`}/>
+                <a href={`/users/${m.senderId}`} className={`pull-${otherPlayer ? 'left' : 'right'} border-${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'} profile_thumb`}>
+                  <img src={sender.getAvatarSrc()} className={`img-responsive fa fa-user ${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'}`}/>
                 </a>
                 <div className="media-body">
-                  <strong>{Meteor.users.findOne(m.senderId).username}</strong>
+                  <strong>{sender.username}</strong>
                   <p>{m.text}</p>
                   <p>
                     <small>{m.sentAt.toLocaleString('en-US', { hour12: false })}</small>
@@ -32,7 +33,7 @@ export default class HistoryPanel extends React.Component {
                   </p>
                 </div>
               </li>
-            )
+            );
           })
         }
       </ul>

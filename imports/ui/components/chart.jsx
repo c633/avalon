@@ -14,6 +14,8 @@ export default class Chart extends React.Component {
     );
   }
 
+  // REGION: Lifecycle Methods
+
   componentDidMount() {
     const { type, config } = this.props;
     config['element'] = ReactDom.findDOMNode(this);

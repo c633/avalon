@@ -22,7 +22,7 @@ export default class PlayersPanel extends React.Component {
     const { group } = this.props;
     const isSelectingMembers = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
     const isGuessingMerlin = group.isGuessingMerlin() && group.findPlayerRole(Meteor.userId()) == Groups.Roles.ASSASSIN;
-    const selectable = isSelectingMembers || isGuessingMerlin;
+    const isSelectable = isSelectingMembers || isGuessingMerlin;
     const leader = group.getLeader();
     const summaries = group.getSummaries();
     return (
@@ -85,8 +85,8 @@ export default class PlayersPanel extends React.Component {
             <div className="clearfix"></div>
             {group.getPlayers().map((player, index) => {
               return <PlayerCard
-                key={player.user._id} onClick={() => { if (selectable) this.onPlayerCardClick(index); }}
-                selectable={selectable}
+                key={player.user._id} onClick={() => { if (isSelectable) this.onPlayerCardClick(index); }}
+                isSelectable={isSelectable}
                 isMember={group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id))}
                 isGuessed={this.state.guessedIndex == index}
                 group={group} player={player.user}/>

@@ -16,7 +16,7 @@ export default class UserBrief extends React.Component {
     return (
       <div>
         <div className="profile_img">
-          <img className="img-responsive avatar-view avalon-avatar" src={user.brief.avatarVersion ? $.cloudinary.url(user._id, { version: user.brief.avatarVersion }) : '/images/avatar.png'} alt="Avatar" title="Avatar"/>
+          <img className="img-responsive avatar-view avalon-avatar" src={user.getAvatarSrc()} alt="Avatar" title="Avatar"/>
           {
             Meteor.userId() == user._id ?
               <label className="btn btn-success btn-file">
