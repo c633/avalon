@@ -1,8 +1,10 @@
 import React from 'react';
+import { changeAvatar } from '../../api/users/methods.js';
 
 export default class UserBrief extends React.Component {
   constructor(props) {
     super(props);
+    this.changeAvatar = this.changeAvatar.bind(this);
   }
 
   // REGION: Component Specifications
@@ -14,11 +16,11 @@ export default class UserBrief extends React.Component {
     return (
       <div>
         <div className="profile_img">
-          <img className="img-responsive avatar-view avalon-avatar" src="/images/avatar.png" alt="Avatar" title="Avatar"/>
+          <img className="img-responsive avatar-view avalon-avatar" src={user.brief.avatarVersion ? $.cloudinary.url(user._id, { version: user.brief.avatarVersion }) : '/images/avatar.png'} alt="Avatar" title="Avatar"/>
           {
             Meteor.userId() == user._id ?
               <label className="btn btn-success btn-file">
-                  Change avatar<input type="file" style={{ display: 'none' }}/>
+                  Change avatar<input ref="avatar" type="file" onChange={this.changeAvatar} style={{ display: 'none' }}/>
               </label> : null
           }
         </div>
@@ -34,6 +36,16 @@ export default class UserBrief extends React.Component {
         </ul>
       </div>
     );
+  }
+
+  // REGION: Handlers
+
+  changeAvatar() {
+    Cloudinary.upload(this.refs.avatar.files[0], { public_id: Meteor.userId() }, (err, img) => {
+      if (!err) {
+        changeAvatar.call({ avatarVersion: img.version });
+      }
+    });
   }
 }
 

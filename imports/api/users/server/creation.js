@@ -1,5 +1,10 @@
 import { Groups } from '../../groups/groups.js';
 
+// Users.brief schema
+// {
+//   avatarVersion: Number
+// }
+
 // Users.activities schema
 // [
 //   {
@@ -13,6 +18,7 @@ import { Groups } from '../../groups/groups.js';
 // ]
 
 Accounts.onCreateUser((_, user) => {
+  user.brief = { avatarVersion: undefined };
   user.activities = [];
   return user;
 });
