@@ -1,5 +1,5 @@
 import React from 'react';
-import { Groups } from '../../api/groups/groups.js'; // Constants only
+import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { start, selectMembers, approve, vote, guess } from '../../api/groups/methods.js';
 import PlayerCard from './player_card.jsx';
 import ErrorModal from './error_modal.jsx';
@@ -7,7 +7,7 @@ import ErrorModal from './error_modal.jsx';
 export default class PlayersPanel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { selectedMemberIndices: [], guessedIndex: -1, errorModal: { isShowing: false, reason: '' } };
+    this.state = { selectedMemberIndices: [], guessedIndex: -1, errorModal: { isShowing: false, reason: null } };
     this.restart = this.restart.bind(this);
     this.onPlayerCardClick = this.onPlayerCardClick.bind(this);
     this.selectMembers = this.selectMembers.bind(this);
@@ -22,59 +22,42 @@ export default class PlayersPanel extends React.Component {
     const { group } = this.props;
     const isSelectingMembers = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
     const isGuessingMerlin = group.isGuessingMerlin() && group.findPlayerRole(Meteor.userId()) == Groups.Roles.ASSASSIN;
-    const isSelectable = isSelectingMembers || isGuessingMerlin;
     const leader = group.getLeader();
     const summaries = group.getSummaries();
     return (
       <div className="x_panel">
         <div className="x_title">
           <div className="row">
-            {
-              summaries.length > 0 ?
-                <div className="col-md-4 col-xs-4">
-                  <div className="avalon-hint">
-                    <img src="/images/tokens/leader.png" className="img-responsive"/>
-                    <div>
-                      <p>Mission {summaries.length}, team {summaries[summaries.length - 1].length}</p>
-                      <p>Leader: <strong>{leader && leader.username}</strong></p>
-                    </div>
-                  </div>
-                </div> : null
-            }
-            {
-              group.isSelectingMembers() ?
-                <div className="col-md-2 col-xs-2">
-                  <div className="avalon-hint">
-                    <img src="/images/tokens/member.png" className="img-responsive"/>
-                    <p>Team member</p>
-                  </div>
-                </div> : null
-            }
-            {
-              group.isWaitingForApproval() ?
-                ['Approved', 'Denied'].map(a =>
-                  <div key={a} className="col-md-2 col-xs-2">
-                    <div className="avalon-hint">
-                      <img src={`/images/tokens/${a.toLowerCase()}.png`} className="img-responsive"/>
-                      <p>{a}</p>
-                    </div>
-                  </div>
-                ) : null
-            }
-            {
-              group.isWaitingForVote() ?
-                ['Voted Success', 'Voted Fail'].map(v =>
-                  <div key={v} className="col-md-2 col-xs-2">
-                    <div className="avalon-hint">
-                      <img src={`/images/tokens/${v.replace(' ', '-').toLowerCase()}.png`} className="img-responsive"/>
-                      <p>{v}</p>
-                    </div>
-                  </div>
-                ) : null
-            }
             <div className="col-md-4 col-xs-4">
               <div className="avalon-hint">
-                <strong>{group.getSituation().status}</strong>
+                {
+                  Array.from(new Array(Groups.MISSIONS_COUNT)).map((_, index) => {
+                    const summary = summaries[index];
+                    const result = summary && (summary.length > 0 || null) && summary[summary.length - 1].result;
+                    const style = {};
+                    if (result !== undefined) {
+                      style.backgroundImage = `url("/images/tokens/mission-${result == null ? 'denied' : result ? 'success' : 'fail'}.png")`;
+                    } else {
+                      style.backgroundColor = '#3498DB';
+                      style.borderRadius = '50%';
+                    }
+                    const membersCount = Groups.MISSIONS_MEMBERS_COUNT[group.players.length][index];
+                    const needMoreFailVotes = group.findRequiredFailVotesCount(index) > 1;
+                    const title = `<b>Mission ${index + 1}</b><br/>${index > summaries.length - 1 ? `Need <b><i>${membersCount}</i></b> team members` : result === undefined ? `<i>PLAYING</i><br/>Need <b><i>${membersCount}</i></b> team members` : result == null ? 'Denied' : result ? 'Success' : 'Fail'}` + (needMoreFailVotes ? '<br/>(Require <b><i>2</i></b> fail votes for the mission to fail)' : '');
+                    return (
+                      <div key={index} className="avalon-token" style={style} data-container="body" data-toggle="tooltip" data-html={true} title={title}>
+                        {index == summaries.length - 1 ? <img className="img-responsive avalon-token-mark-top" src="/images/tokens/playing.png"/> : null}
+                        <span>{result !== undefined ? '' : membersCount}</span>
+                        {needMoreFailVotes ? <img className="img-responsive avalon-token-mark-bottom" src="/images/tokens/more-fail-votes.png"/> : null}
+                      </div>
+                    );
+                  })
+                }
+              </div>
+            </div>
+            <div className="col-md-8 col-xs-8">
+              <div className="avalon-hint">
+                {(group.isPlaying() ? group.findSuggestion(Meteor.userId()) : null) || <p>{group.getSituation().status}</p>}
               </div>
             </div>
           </div>
@@ -84,12 +67,15 @@ export default class PlayersPanel extends React.Component {
           <div className="row">
             <div className="clearfix"></div>
             {group.getPlayers().map((player, index) => {
+              const isMember = group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id));
+              const isGuessed = this.state.guessedIndex == index;
+              const isSelectable =
+                isSelectingMembers ?
+                  (isMember || this.state.selectedMemberIndices.length < Groups.MISSIONS_MEMBERS_COUNT[group.players.length][summaries.length - 1] ? true : null) :
+                  isGuessingMerlin ? !isGuessed : false;
               return <PlayerCard
                 key={player.user._id} onClick={() => { if (isSelectable) this.onPlayerCardClick(index); }}
-                isSelectable={isSelectable}
-                isMember={group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id))}
-                isGuessed={this.state.guessedIndex == index}
-                group={group} player={player.user}/>
+                isSelectable={isSelectable} isMember={isMember} isGuessed={isGuessed} group={group} player={player.user}/>
             })}
           </div>
           <div className="form-group">
@@ -112,13 +98,18 @@ export default class PlayersPanel extends React.Component {
                 </span> : null
             }
             {isGuessingMerlin ? <button className="btn btn-dark" onClick={this.guess}>Guess Merlin</button> : null}
-            <strong>{group.findSuggestion(Meteor.userId())}</strong>
             {group.hasOwner(Meteor.userId()) ? <div><button className="btn btn-primary" onClick={this.restart}>Restart game</button></div> : null}
           </div>
           {this.state.errorModal.isShowing ? <ErrorModal hide={() => this.setState({ errorModal: { isShowing: false } })} reason={this.state.errorModal.reason}/> : null}
         </div>
       </div>
     );
+  }
+
+  // REGION: Lifecycle Methods
+
+  componentDidMount() {
+    $('[data-toggle="tooltip"]').tooltip();
   }
 
   // REGION: Handlers

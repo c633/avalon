@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { Groups } from '../groups.js';
+import { Groups } from '../groups.jsx';
 import { check } from 'meteor/check';
 
 Meteor.publish('groups.findAll', () => Groups.find({}, { fields: Groups.publicFieldsWhenFindAll }));

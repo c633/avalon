@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { Groups } from '../../api/groups/groups.js';
+import { Groups } from '../../api/groups/groups.jsx';
 
 // If the database is empty on server start, create some sample data.
 Meteor.startup(() => {

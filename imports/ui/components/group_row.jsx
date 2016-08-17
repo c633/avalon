@@ -1,5 +1,5 @@
 import React from 'react';
-import { Groups } from '../../api/groups/groups.js'; // Constants only
+import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { join, leave } from '../../api/groups/methods.js';
 
 export default class GroupRow extends React.Component {
@@ -19,7 +19,7 @@ export default class GroupRow extends React.Component {
     return (
       <tr>
         <td>
-          <strong>{group.name}</strong>
+          <b>{group.name}</b>
           <br/>
           <small>Owner: {group.getOwner().username}</small>
         </td>
@@ -28,7 +28,7 @@ export default class GroupRow extends React.Component {
             {group.getPlayers().map(p =>
               <li key={p.user._id}>
                 <a href={`/users/${p.user._id}`}>
-                  <img src={p.user.getAvatarSrc()} className="avatar" alt="Avatar" data-toggle="tooltip" data-placement="top" title={p.user.username}/>
+                  <img src={p.user.getAvatarSrc()} className="avatar" alt="Avatar" data-container="body" data-toggle="tooltip" title={p.user.username}/>
                 </a>
               </li>
             )}
@@ -38,7 +38,7 @@ export default class GroupRow extends React.Component {
           {
             isPlaying ?
               <span className="label label-info">Playing</span> :
-              <span className={`label label-${situation.slot == null ? 'primary' : 'warning'}`}>{situation.status}</span>
+              <span className={`label label-${situation.slot == null ? 'primary' : 'warning'}`}>{situation.status[0]}</span>
           }
           {
             situation.slot == false ?

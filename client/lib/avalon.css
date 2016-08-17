@@ -76,6 +76,10 @@ h3 small {
   margin-bottom: 0px; 
 }
 
+.tooltip-inner {
+  max-width: 400px;
+}
+
 /*
  * Modified
  */
@@ -179,50 +183,75 @@ footer {
 }
 
 .avalon-card-unselectable {
+  cursor: default;
+}
+
+.avalon-card-disable {
   cursor: not-allowed;
-  opacity: 0.75;
+  opacity: 0.6;
 }
 
 .avalon-card p,
-.avalon-card-unselectable p {
+.avalon-card-unselectable p,
+.avalon-card-disable p {
   margin: 0px;
 }
 
 button.avalon-card,
 button.avalon-card-unselectable,
+button.avalon-card-disable,
 button.avalon-card > div,
-button.avalon-card-unselectable > div {
+button.avalon-card-unselectable > div,
+button.avalon-card-disable > div {
   width: 100%;
 }
 
-.avalon-mark-left,
-.avalon-mark-top,
-.avalon-mark-right,
-.avalon-mark-bottom {
+.avalon-card-mark-left,
+.avalon-card-mark-top,
+.avalon-card-mark-right,
+.avalon-card-mark-bottom {
   position: absolute;
   width: 32px;
   height: 32px;
 }
 
-.avalon-mark-left {
+.avalon-card-mark-left {
   top: -25px;
   left: -15px;
 }
 
-.avalon-mark-top {
+.avalon-card-mark-top {
   top: -30px;
   left: 50%;
   margin-left: -16px;
 }
 
-.avalon-mark-right {
+.avalon-card-mark-right {
   top: -25px;
   right: -15px;
 }
 
-.avalon-mark-bottom {
+.avalon-card-mark-bottom {
   bottom: 10px;
   right: 0px;
+}
+
+.avalon-token-mark-top,
+.avalon-token-mark-bottom {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+}
+
+.avalon-token-mark-top {
+  top: -20px;
+  left: 50%;
+  margin-left: -12px;
+}
+
+.avalon-token-mark-bottom {
+  bottom: -10px;
+  right: -5px;
 }
 
 .avalon-col-card-role,
@@ -286,12 +315,6 @@ button.avalon-card-unselectable > div {
   position: relative;
 }
 
-.avalon-hint > p > strong,
-.avalon-hint > p > span {
-  position: absolute;
-  bottom: 0px;
-}
-
 .avalon-summaries {
   height: 350px;
   overflow: auto;
@@ -299,6 +322,28 @@ button.avalon-card-unselectable > div {
 
 .avalon-summary-result {
   height: 24px;
+}
+
+.avalon-token {
+  margin: 2px;
+  width: 20%;
+  background-size: 100% 100%;
+  position: relative;
+}
+
+.avalon-token::after {
+  padding-top: 100%;
+  display: block;
+  content: '';
+}
+
+.avalon-token span {
+  left: 0;
+  color: #F0F0F0;
+  position: absolute;
+  width: 100%;
+  font-size: xx-large;
+  text-align: center;
 }
 
 /* User page */

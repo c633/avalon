@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import { Groups } from './groups.js';
+import { Groups } from './groups.jsx';
 import { _ } from 'meteor/underscore';
 
 export const insert = new ValidatedMethod({
@@ -84,8 +84,8 @@ export const start = new ValidatedMethod({
       const evilPlayersCount = group.getEvilPlayersCount();
       let roles = additionalRoles;
       roles = roles.concat([Groups.Roles.MERLIN, Groups.Roles.ASSASSIN]); // Required players
-      const servants = Array.from(Array(playersCount - evilPlayersCount - roles.filter(r => r > 0).length)).map(_ => Groups.Roles.SERVANT);
-      const minions = Array.from(Array(evilPlayersCount - roles.filter(r => r < 0).length)).map(_ => Groups.Roles.MINION);
+      const servants = Array.from(new Array(playersCount - evilPlayersCount - roles.filter(r => r > 0).length)).map(_ => Groups.Roles.SERVANT);
+      const minions = Array.from(new Array(evilPlayersCount - roles.filter(r => r < 0).length)).map(_ => Groups.Roles.MINION);
       _.shuffle(roles.concat(servants, minions)).forEach((r, i) => group.players[i].role = r);
       Groups.update(groupId, {
         $set: { players: group.players }

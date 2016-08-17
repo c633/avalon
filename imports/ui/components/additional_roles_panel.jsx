@@ -1,5 +1,5 @@
 import React from 'react';
-import { Groups } from '../../api/groups/groups.js'; // Constants only
+import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { start } from '../../api/groups/methods.js';
 import RoleCard from './role_card.jsx';
 
@@ -18,18 +18,22 @@ export default class AdditionalRolesPanel extends React.Component {
     return group.hasOwner(Meteor.userId()) && !group.isPlaying() ? (
       <div className="x_panel">
         <div className="x_title">
-          <h2>Additional roles</h2>
+          <div className="row">
+            <div className="col-md-3 col-xs-3"><div className="avalon-hint"><p>Additional roles</p></div></div>
+            <div className="col-md-9 col-xs-9">
+              <div className="avalon-hint">
+                {group.findSuggestion(Meteor.userId())}
+              </div>
+            </div>
+          </div>
           <div className="clearfix"></div>
         </div>
         <div className="x_content">
           <div className="row">
-            <div className="col-md-12 col-sm-12 col-xs-12 text-center">
-              {group.findSuggestion(Meteor.userId())}
-            </div>
             <div className="clearfix"></div>
             {
               [Groups.Roles.PERCIVAL, Groups.Roles.MORDRED, Groups.Roles.MORGANA, Groups.Roles.OBERON].map(r => {
-                const isSelected = this.state.selectedAdditionalRoles.indexOf(r) != -1; 
+                const isSelected = this.state.selectedAdditionalRoles.indexOf(r) != -1;
                 const isSelectable = isSelected ||
                   this.state.selectedAdditionalRoles.filter(r => r < 0).length < group.getEvilPlayersCount() - 1 ||
                   (r == Groups.Roles.PERCIVAL && this.state.selectedAdditionalRoles.indexOf(Groups.Roles.MORGANA) != -1);

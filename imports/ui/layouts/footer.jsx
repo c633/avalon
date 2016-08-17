@@ -11,7 +11,7 @@ export default class Footer extends React.Component {
     return (
       <footer>
         <div className="pull-right">
-          <strong>Avalon game</strong>
+          <b>Avalon game</b>
         </div>
         <div className="clearfix"></div>
       </footer>

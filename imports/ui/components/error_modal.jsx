@@ -32,5 +32,5 @@ export default class ErrorModal extends React.Component {
 
 ErrorModal.propTypes = {
   hide: React.PropTypes.func,
-  reason: React.PropTypes.string,
+  reason: React.PropTypes.object,
 };

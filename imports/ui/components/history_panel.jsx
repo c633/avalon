@@ -1,5 +1,5 @@
 import React from 'react';
-import { Groups } from '../../api/groups/groups.js'; // Constants only
+import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { sendMessage } from '../../api/groups/methods.js';
 
 export default class HistoryPanel extends React.Component {
@@ -25,7 +25,7 @@ export default class HistoryPanel extends React.Component {
                   <img src={sender.getAvatarSrc()} className={`img-responsive fa fa-user ${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'}`}/>
                 </a>
                 <div className="media-body">
-                  <strong>{sender.username}</strong>
+                  <b>{sender.username}</b>
                   <p>{m.text}</p>
                   <p>
                     <small>{m.sentAt.toLocaleString('en-US', { hour12: false })}</small>
@@ -43,12 +43,12 @@ export default class HistoryPanel extends React.Component {
         <div className="accordion" role="tablist" aria-multiselectable="true">
           {
             group.getSummaries().map((m, i) => {
-              const lastResult = m[m.length - 1].result;
+              const lastResult = (m.length > 0 || null) && m[m.length - 1].result;
               return (
                 <div key={i} className="panel">
                   <div className="panel-heading" role="tab" aria-expanded="true">
-                    <span className={`panel-title${lastResult === undefined ? '' : ` avalon-${lastResult ? 'good' : 'evil'}`}`}><strong>Mission {i + 1}</strong> ({lastResult === undefined ? 'Playing' : lastResult ? 'Success' : 'Fail'})</span>
-                    <img src={`/images/tokens/${lastResult === undefined ? 'playing' : `mission-${lastResult ? 'success' : 'fail'}` }.png`} className="pull-right avalon-summary-result"/>
+                    <span className={`panel-title${lastResult === undefined ? '' : ` avalon-${lastResult ? 'good' : 'evil'}`}`}><b>Mission {i + 1}</b> ({lastResult === undefined ? 'Playing' : lastResult == null ? 'Denied' : lastResult ? 'Success' : 'Fail'})</span>
+                    <img src={`/images/tokens/${lastResult === undefined ? 'playing' : `mission-${lastResult == null ? 'denied' : lastResult ? 'success' : 'fail'}`}.png`} className="pull-right avalon-summary-result"/>
                   </div>
                   <div className="panel-collapse collapse in" role="tabpanel">
                     <div className="panel-body">
@@ -84,7 +84,7 @@ export default class HistoryPanel extends React.Component {
     return (
       <div className="x_panel">
         <div className="x_title">
-          <h2><strong>Group: {group.name}</strong> (Owner: {group.getOwner().username})</h2>
+          <h2><b>Group: {group.name}</b> (Owner: {group.getOwner().username})</h2>
           <div className="clearfix"></div>
         </div>
         <div className="x_content">

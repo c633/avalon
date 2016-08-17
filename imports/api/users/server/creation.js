@@ -1,4 +1,4 @@
-import { Groups } from '../../groups/groups.js';
+import { Groups } from '../../groups/groups.jsx';
 
 // Users.brief schema
 // {

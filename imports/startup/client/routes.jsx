@@ -1,11 +1,11 @@
 import React from 'react';
 import { Router, Route, browserHistory } from 'react-router';
-import AppContainer from '../../ui/containers/app_container';
-import LobbyContainer from '../../ui/containers/lobby_container';
+import AppContainer from '../../ui/containers/app_container.jsx';
+import LobbyContainer from '../../ui/containers/lobby_container.jsx';
 import GroupContainer from '../../ui/containers/group_container.jsx';
 import UserContainer from '../../ui/containers/user_container.jsx';
-import AuthLogin from '../../ui/pages/auth_login';
-import AuthSignup from '../../ui/pages/auth_signup';
+import AuthLogin from '../../ui/pages/auth_login.jsx';
+import AuthSignup from '../../ui/pages/auth_signup.jsx';
 
 export const renderRoutes = () => (
   <Router history={browserHistory}>

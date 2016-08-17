@@ -1,3 +1,4 @@
+import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
@@ -122,6 +123,9 @@ Groups.helpers({
   getTeamsCount() {
     return this.missions.reduce((c, m) => c + m.teams.length, 0);
   },
+  findRequiredFailVotesCount(missionIndex) {
+    return missionIndex == 3 && this.players.length >= 7 ? 2 : 1;
+  },
   getSummaries() {
     return this.missions.map((m, i) =>
       m.teams.map(t => {
@@ -132,7 +136,7 @@ Groups.helpers({
             summary.result = null;
           } else if (t.successVotes.indexOf(null) == -1) {
             summary.failVotesCount = t.successVotes.filter(a => !a).length;
-            summary.result = summary.failVotesCount < (i == 3 && this.players.length >= 7 ? 2 : 1) ? true : false;
+            summary.result = summary.failVotesCount < this.findRequiredFailVotesCount(i) ? true : false;
           }
         }
         return summary;
@@ -263,10 +267,10 @@ Groups.helpers({
     if (!this.isPlaying()) {
       const playersCount = this.players.length;
       if (playersCount < Groups.MIN_PLAYERS_COUNT) {
-        situation.status = 'Waiting for more players';
+        situation.status = ['Waiting for more players'];
         situation.slot = null;
       } else {
-        situation.status = 'Ready';
+        situation.status = ['Ready', ' (Waiting for owner ', <b key="owner">{this.getOwner().username}</b>, ' to start game)'];
         situation.slot = playersCount < Groups.MAX_PLAYERS_COUNT ? true : false;
       }
     } else {
@@ -274,17 +278,28 @@ Groups.helpers({
         return situation;
       }
       if (this.isSelectingMembers()) {
-        situation.status = 'Leader is selecting team members';
+        situation.status = ['Leader ', <b key="leader">{this.getLeader().username}</b>, ' is selecting team members'];
       } else if (this.isWaitingForApproval()) {
-        situation.status = 'Waiting for players to approve the mission team members';
+        situation.status = ['Waiting for players to approve the mission team members'];
       } else if (this.isWaitingForVote()) {
-        situation.status = 'Waiting for team members to vote for the mission success or fail';
+        situation.status = ['Waiting for team members to vote for the mission success or fail'];
       } else if (this.isGuessingMerlin()) {
-        situation.status = 'Waiting for Assassin to guess Merlin\'s identity';
+        situation.status = ['Waiting for ', <i key="assassin" className="avalon-evil">Assassin</i>, ' to guess ', <i key="merlin" className="avalon-good">Merlin's</i>, ' identity'];
         situation.result = null;
       } else {
         const result = this.guessMerlin === undefined || this.guessMerlin ? false : true;
-        situation.status = result ? 'Good players win' : 'Evil players win';
+        situation.status = result ? [<b key="good" className="avalon-good">Good</b>, ' players win'] : [<b key="evil" className="avalon-evil">Evil</b>, ' players win'];
+        if (this.guessMerlin === undefined) {
+          if (this.missions[this.missions.length - 1].teams.length >= Groups.MISSION_TEAMS_COUNT) {
+            situation.status = situation.status.concat([<br key="br"/>, `(With ${Groups.MISSION_TEAMS_COUNT} denied mission team proposals)`]);
+          }
+        } else {
+          if (this.guessMerlin) {
+            situation.status = situation.status.concat([<br key="br"/>, '(', <i key="assassin" className="avalon-evil">Assassin</i>, ' killed ', <i key="merlin" className="avalon-good">Merlin</i>, ')']);
+          } else {
+            situation.status = situation.status.concat([<br key="br"/>, '(', <i key="assassin" className="avalon-evil">Assassin</i>, ' failed at killing ', <i key="merlin" className="avalon-good">Merlin</i>, ')']);
+          }
+        }
         situation.result = result;
       }
     }
@@ -343,17 +358,40 @@ Groups.helpers({
   findSuggestion(userId) {
     let suggestion;
     if (this.hasOwner(userId) && !this.isPlaying()) {
-      suggestion = `Click to select additional roles if you want (you can only select up to ${this.getEvilPlayersCount() - 1} additional evil role(s)). Note that PERCIVAL must be selected with MORGANA`;
+      suggestion =
+        <p>
+          Click to select additional roles if you want
+          <br/>
+          (You can only select up to <b>{this.getEvilPlayersCount() - 1}</b> additional <i className="avalon-evil">evil</i> role(s)).
+          <br/>
+          Note that <i className="avalon-good">PERCIVAL</i> must be selected with <i className="avalon-evil">MORGANA</i>
+        </p>;
     } else if (this.isSelectingMembers() && this.hasLeader(userId)) {
-      suggestion = ` Click player cards then press 'Select members' button to select ${Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]} team members`;
+      suggestion =
+        <p>
+          You are leader. Select player cards then press '<b>Select members</b>' button to select <b>{Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]}</b> team members
+        </p>;
     } else if (this.isWaitingForApproval() && this.hasPlayer(userId)) {
       const approval = this.getLastTeam().approvals[this.players.map(p => p.id).indexOf(userId)];
-      suggestion = `Press buttons to approve or deny the mission team members${approval == null ? '' : ` (You ${approval ? 'approved' : 'denied'})`}`;
+      suggestion =
+        <p>
+          Press buttons to approve or deny the mission team members
+          <br/>
+          <b>{approval == null ? '' : `(You ${approval ? 'approved' : 'denied'})`}</b>
+        </p>;
     } else if (this.isWaitingForVote() && this.hasMember(userId)) {
       const vote = this.getLastTeam().successVotes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))];
-      suggestion = `Press buttons to vote for the mission success or fail${vote == null ? '' : ` (You voted for ${vote ? 'success' : 'fail'})`}`;
+      suggestion =
+        <p>
+          Press buttons to vote for the mission success or fail
+          <br/>
+          <b>{vote == null ? '' : `(You voted for ${vote ? 'success' : 'fail'})`}</b>
+        </p>;
     } else if (this.isGuessingMerlin() && this.findPlayerRole(userId) == Groups.Roles.ASSASSIN) {
-      suggestion = 'Click one player card then press \'Guess Merlin\' button to guess who is Merlin';
+      suggestion =
+        <p>
+          Select one player card then press '<b>Guess Merlin</b>' button to guess who is <i className="avalon-good">Merlin</i>
+        </p>;
     }
     return suggestion;
   }

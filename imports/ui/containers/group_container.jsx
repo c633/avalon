@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { Groups } from '../../api/groups/groups.js';
+import { Groups } from '../../api/groups/groups.jsx';
 import { createContainer } from 'meteor/react-meteor-data';
 import GroupPage from '../pages/group_page.jsx';
 
