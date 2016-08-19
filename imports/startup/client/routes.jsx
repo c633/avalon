@@ -6,6 +6,7 @@ import GroupContainer from '../../ui/containers/group_container.jsx';
 import UserContainer from '../../ui/containers/user_container.jsx';
 import AuthLogin from '../../ui/pages/auth_login.jsx';
 import AuthSignup from '../../ui/pages/auth_signup.jsx';
+import Rules from '../../ui/pages/rules.jsx';
 
 export const renderRoutes = () => (
   <Router history={browserHistory}>
@@ -15,6 +16,7 @@ export const renderRoutes = () => (
       <Route path="/users/:id" component={UserContainer}/>
       <Route path="/login" component={AuthLogin}/>
       <Route path="/signup" component={AuthSignup}/>
+      <Route path="/rules" component={Rules}/>
     </Route>
   </Router>
 );

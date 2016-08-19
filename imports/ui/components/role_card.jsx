@@ -10,7 +10,7 @@ export default class RoleCard extends React.Component {
 
   render() {
     const { isSelectable, isSelected, role } = this.props;
-    const name = Groups.RoleNames()[role];
+    const name = Groups.RoleNames[role];
     const image = name.toLowerCase();
     const side = role > 0 ? 'good' : 'evil';
     return (

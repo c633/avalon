@@ -31,27 +31,28 @@ export default class PlayersPanel extends React.Component {
             <div className="col-md-4 col-xs-4">
               <div className="avalon-hint">
                 {
-                  Array.from(new Array(Groups.MISSIONS_COUNT)).map((_, index) => {
-                    const summary = summaries[index];
-                    const result = summary && (summary.length > 0 || null) && summary[summary.length - 1].result;
-                    const style = {};
-                    if (result !== undefined) {
-                      style.backgroundImage = `url("/images/tokens/mission-${result == null ? 'denied' : result ? 'success' : 'fail'}.png")`;
-                    } else {
-                      style.backgroundColor = '#3498DB';
-                      style.borderRadius = '50%';
-                    }
-                    const membersCount = Groups.MISSIONS_MEMBERS_COUNT[group.players.length][index];
-                    const needMoreFailVotes = group.findRequiredFailVotesCount(index) > 1;
-                    const title = `<b>Mission ${index + 1}</b><br/>${index > summaries.length - 1 ? `Need <b><i>${membersCount}</i></b> team members` : result === undefined ? `<i>PLAYING</i><br/>Need <b><i>${membersCount}</i></b> team members` : result == null ? 'Denied' : result ? 'Success' : 'Fail'}` + (needMoreFailVotes ? '<br/>(Require <b><i>2</i></b> fail votes for the mission to fail)' : '');
-                    return (
-                      <div key={index} className="avalon-token" style={style} data-container="body" data-toggle="tooltip" data-html={true} title={title}>
-                        {index == summaries.length - 1 ? <img className="img-responsive avalon-token-mark-top" src="/images/tokens/playing.png"/> : null}
-                        <span>{result !== undefined ? '' : membersCount}</span>
-                        {needMoreFailVotes ? <img className="img-responsive avalon-token-mark-bottom" src="/images/tokens/more-fail-votes.png"/> : null}
-                      </div>
-                    );
-                  })
+                  group.isPlaying() ?
+                    Array.from(new Array(Groups.MISSIONS_COUNT)).map((_, index) => {
+                      const summary = summaries[index];
+                      const result = summary && (summary.length > 0 || null) && summary[summary.length - 1].result;
+                      const style = {};
+                      if (result !== undefined) {
+                        style.backgroundImage = `url("/images/tokens/mission-${result == null ? 'denied' : result ? 'success' : 'fail'}.png")`;
+                      } else {
+                        style.backgroundColor = '#3498DB';
+                        style.borderRadius = '50%';
+                      }
+                      const membersCount = Groups.MISSIONS_MEMBERS_COUNT[group.players.length][index];
+                      const needMoreFailVotes = group.findRequiredFailVotesCount(index) > 1;
+                      const title = `<b>Mission ${index + 1}</b><br/>${index > summaries.length - 1 ? `Need <b><i>${membersCount}</i></b> team members` : result === undefined ? `<i>PLAYING</i><br/>Need <b><i>${membersCount}</i></b> team members` : result == null ? 'Denied' : result ? 'Success' : 'Fail'}` + (needMoreFailVotes ? '<br/>(Require <b><i>2</i></b> fail votes for the mission to fail)' : '');
+                      return (
+                        <div key={index} className="avalon-token" style={style} data-container="body" data-toggle="tooltip" data-html={true} title={title}>
+                          {index == summaries.length - 1 ? <img className="img-responsive avalon-token-mark-top" src="/images/tokens/playing.png"/> : null}
+                          <span>{result !== undefined ? '' : membersCount}</span>
+                          {needMoreFailVotes ? <img className="img-responsive avalon-token-mark-bottom" src="/images/tokens/more-fail-votes.png"/> : null}
+                        </div>
+                      );
+                    }) : null
                 }
               </div>
             </div>

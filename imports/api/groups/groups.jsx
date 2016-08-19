@@ -340,7 +340,7 @@ Groups.helpers({
         [role, side] = otherPlayer ? ['Unknown', null] : ['Oberon', false];
         break;
       case null:
-        [role, side] = ['Unknown', null]; // [Groups.RoleNames()[playerRole], playerRole > 0 ? true : false];
+        [role, side] = ['Unknown', null]; // [Groups.RoleNames[playerRole], playerRole > 0 ? true : false];
         break;
       }
     }
@@ -402,23 +402,23 @@ Groups.MAX_PLAYERS_COUNT = 10;
 Groups.Roles = {
   UNDECIDED: 0,
   // Good
-  SERVANT: 1,         // Loyal servant of Arthur: only knows how many evil players exist, not who they are (blue sky, #50C1CF)
-  MERLIN: 2,          // Knows who the evil players are (green, #1ABB9C)
-  PERCIVAL: 3,        // Knows who Merlin is and is in a position to help protect Merlin's identity (blue, #3498DB)
+  SERVANT: 1,         // Loyal servant of Arthur: only knows how many evil players exist, not who they are (green, #1ABB9C)
+  MERLIN: 2,          // Knows who the evil players are (blue, #3498DB)
+  PERCIVAL: 3,        // Knows who Merlin is and is in a position to help protect Merlin's identity (blue sky, #50C1CF)
   // Evil
-  MINION: -1,         // Minion of Mordred: are made aware of each other without the good players knowing (orange, #F39C12)
-  ASSASSIN: -2,       // Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game (red, #E74C3C)
-  MORDRED: -3,        // Does not reveal his identity to Merlin, leaving Merlin in the dark (purple, #9B59B6)
+  MINION: -1,         // Minion of Mordred: are made aware of each other without the good players knowing (red, #E74C3C)
+  ASSASSIN: -2,       // Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game (purple, #9B59B6) 
+  MORDRED: -3,        // Does not reveal his identity to Merlin, leaving Merlin in the dark (orange, #F39C12)
   MORGANA: -4,        // Appears to be Merlin, revealing herself to Percival as Merlin (dark, #34495E)
   OBERON: -5,         // Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players (aero, #9CC2CB)
 };
-Groups.RoleNames = () => {
+Groups.RoleNames = (() => {
   const names = {};
   for (const role in Groups.Roles) {
     names[Groups.Roles[role]] = role;
   }
   return names;
-};
+})();
 Groups.MISSIONS_COUNT = 5;
 Groups.MISSIONS_COUNT_TO_WIN = 3;
 Groups.MISSION_TEAMS_COUNT = 5;

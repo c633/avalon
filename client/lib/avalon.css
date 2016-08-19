@@ -156,6 +156,40 @@ footer {
   margin: -10px 0px 10px;
 }
 
+.avalon-good,
+.avalon-role-servant {
+  color: #1ABB9C;
+}
+
+.avalon-role-merlin {
+  color: #3498DB;
+}
+
+.avalon-role-percival {
+  color: #50C1CF;
+}
+
+.avalon-evil,
+.avalon-role-minion {
+  color: #E74C3C;
+}
+
+.avalon-role-assassin {
+  color: #9B59B6;
+}
+
+.avalon-role-mordred {
+  color: #F39C12;
+}
+
+.avalon-role-morgana {
+  color: #34495E;
+}
+
+.avalon-role-oberon {
+  color: #9CC2CB;
+}
+
 /* Auth pages */
 
 .avalon-error,
@@ -165,14 +199,6 @@ footer {
 }
 
 /* Group page */
-
-.avalon-good {
-  color: #26B99A;
-}
-
-.avalon-evil {
-  color: #D9534F;
-}
 
 .avalon-card:hover {
   background: #E2E5E7;

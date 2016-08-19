@@ -46,7 +46,7 @@ export default class UserActivity extends React.Component {
     const hasData = roleChartData.filter(r => r.value > 0).length > 0;
     const roleChartConfig = {
       data: hasData ? roleChartData : [{ label: 'No data', value: 1 }],
-      colors: ['#50C1CF', '#1ABB9C', '#3498DB', '#F39C12', '#E74C3C', '#9B59B6', '#34495E', '#9CC2CB'],
+      colors: ['#1ABB9C', '#3498DB', '#50C1CF', '#E74C3C', '#9B59B6', '#F39C12', '#34495E', '#9CC2CB'],
       formatter: y => hasData ? y + ' times' : '',
       resize: true
     };

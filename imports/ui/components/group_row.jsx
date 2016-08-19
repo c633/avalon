@@ -19,7 +19,7 @@ export default class GroupRow extends React.Component {
     return (
       <tr>
         <td>
-          <b>{group.name}</b>
+          <a href={`/groups/${group._id}`}><b>{group.name}</b></a>
           <br/>
           <small>Owner: {group.getOwner().username}</small>
         </td>
