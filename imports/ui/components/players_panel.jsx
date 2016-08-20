@@ -76,7 +76,7 @@ export default class PlayersPanel extends React.Component {
                   isGuessingMerlin ? !isGuessed : false;
               return <PlayerCard
                 key={player.user._id} onClick={() => { if (isSelectable) this.onPlayerCardClick(index); }}
-                isSelectable={isSelectable} isMember={isMember} isGuessed={isGuessed} group={group} player={player.user}/>
+                isSelectable={isSelectable} isMember={isMember} isGuessed={isGuessed} group={group} player={player.user}/>;
             })}
           </div>
           <div className="form-group">

@@ -2,9 +2,6 @@ import React from 'react';
 import GroupTable from '../components/group_table.jsx';
 
 export default class Lobby extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   // REGION: Component Specifications
 

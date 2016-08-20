@@ -2,9 +2,6 @@ import React from 'react';
 import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 
 export default class PlayerCard extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   // REGION: Component Specifications
 

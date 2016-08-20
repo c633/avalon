@@ -4,9 +4,6 @@ import PlayersPanel from '../components/players_panel.jsx';
 import HistoryPanel from '../components/history_panel.jsx';
 
 export default class GroupPage extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   // REGION: Component Specifications
 

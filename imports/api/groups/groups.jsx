@@ -114,7 +114,7 @@ Groups.helpers({
     return (player || null) && player.role;
   },
   isPlaying() {
-    return this.missions.length != 0
+    return this.missions.length != 0;
   },
   getLastTeam() { // Force return `null` if missions list or teams list is empty (instead of `undefined`)
     const lastMission = this.missions[this.missions.length - 1];
@@ -353,7 +353,7 @@ Groups.helpers({
       const vote = this.getLastTeam().successVotes[this.getLastTeam().memberIndices.indexOf(playerIndex)];
       status = vote === undefined ? '' : otherPlayer || vote == null ? 'Waiting' : vote ? 'Voted Success' : 'Voted Fail';
     }
-    return { role: role, side: side, status: status }
+    return { role: role, side: side, status: status };
   },
   findSuggestion(userId) {
     let suggestion;

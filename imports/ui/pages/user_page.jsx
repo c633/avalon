@@ -3,9 +3,6 @@ import UserBrief from '../components/user_brief.jsx';
 import UserActivity from '../components/user_activity.jsx';
 
 export default class UserPage extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   // REGION: Component Specifications
 

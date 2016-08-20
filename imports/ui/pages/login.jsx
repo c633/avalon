@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default class AuthLogin extends React.Component {
+export default class Login extends React.Component {
   constructor(props) {
     super(props);
     this.state = { errors: {} };
@@ -80,6 +80,6 @@ export default class AuthLogin extends React.Component {
   }
 }
 
-AuthLogin.contextTypes = {
+Login.contextTypes = {
   router: React.PropTypes.object,
 };

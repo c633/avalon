@@ -3,9 +3,6 @@ import Chart from './chart.jsx';
 import { Groups } from '../../api/groups/groups.jsx';
 
 export default class UserActivity extends React.Component {
-  constructor(props) {
-    super(props);
-  }
 
   // REGION: Component Specifications
 
@@ -19,19 +16,19 @@ export default class UserActivity extends React.Component {
     const groupChartData = dates.map(date =>
       activities.filter(a =>
         a.finishedAt.getDate() == date).reduce((c, a) => {
-          return { date: c.date, winTimesCount: c.winTimesCount + (a.result ? 1 : 0), loseTimesCount: c.loseTimesCount + (!a.result ? 1 : 0) }
+          return { date: c.date, winTimesCount: c.winTimesCount + (a.result ? 1 : 0), loseTimesCount: c.loseTimesCount + (!a.result ? 1 : 0) };
         }, { date: date + ` ${monthNames[month]}`, winTimesCount: 0, loseTimesCount: 0 })
     );
     const roleChartData = activities.reduce((c, a) => {
       c[c.findIndex(r => r.role == a.role)].count++;
       return c;
-    }, Object.keys(Groups.Roles).map(r => { return { name: r, role: Groups.Roles[r], count: 0 } }).filter(r => r.role != Groups.Roles.UNDECIDED)).map(r => {
-      return { label: r.name, value: r.count }
+    }, Object.keys(Groups.Roles).map(r => { return { name: r, role: Groups.Roles[r], count: 0 }; }).filter(r => r.role != Groups.Roles.UNDECIDED)).map(r => {
+      return { label: r.name, value: r.count };
     });
     const teamChartData = dates.map(date =>
       activities.filter(a =>
         a.finishedAt.getDate() == date).reduce((c, a) => {
-          return { date: c.date, deniedTeamsCount: c.deniedTeamsCount + a.deniedTeamsCount, successTeamsCount: c.successTeamsCount + a.successTeamsCount, failTeamsCount: c.failTeamsCount + a.failTeamsCount }
+          return { date: c.date, deniedTeamsCount: c.deniedTeamsCount + a.deniedTeamsCount, successTeamsCount: c.successTeamsCount + a.successTeamsCount, failTeamsCount: c.failTeamsCount + a.failTeamsCount };
         }, { date: date + ` ${monthNames[month]}`, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 })
     );
     const groupChartConfig = {
