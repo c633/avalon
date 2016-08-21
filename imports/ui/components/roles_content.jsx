@@ -3,7 +3,7 @@ import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { start } from '../../api/groups/methods.js';
 import RoleCard from './role_card.jsx';
 
-export default class AdditionalRolesPanel extends React.Component {
+export default class RolesContent extends React.Component {
   constructor(props) {
     super(props);
     this.state = { selectedAdditionalRoles: [] };
@@ -16,38 +16,32 @@ export default class AdditionalRolesPanel extends React.Component {
   render() {
     const { group } = this.props;
     return group.hasOwner(Meteor.userId()) && !group.isPlaying() ? (
-      <div className="x_panel">
-        <div className="x_title">
-          <div className="row">
-            <div className="col-md-3 col-xs-3"><div className="avalon-hint"><p>Additional roles</p></div></div>
-            <div className="col-md-9 col-xs-9">
-              <div className="avalon-hint">
-                {group.findSuggestion(Meteor.userId())}
-              </div>
+      <div style={{ borderBottom: '2px solid #E6E9ED' }}>
+        <div className="row">
+          <div className="col-sm-3 col-xs-12"><div className="avalon-hint"><p>Additional roles</p></div></div>
+          <div className="col-sm-9 col-xs-12">
+            <div className="avalon-hint">
+              {group.findSuggestion(Meteor.userId())}
             </div>
           </div>
-          <div className="clearfix"></div>
         </div>
-        <div className="x_content">
-          <div className="row">
-            <div className="clearfix"></div>
-            {
-              [Groups.Roles.PERCIVAL, Groups.Roles.MORDRED, Groups.Roles.MORGANA, Groups.Roles.OBERON].map(r => {
-                const isSelected = this.state.selectedAdditionalRoles.indexOf(r) != -1;
-                const isSelectable = isSelected ||
-                  this.state.selectedAdditionalRoles.filter(r => r < 0).length < group.getEvilPlayersCount() - 1 ||
-                  (r == Groups.Roles.PERCIVAL && this.state.selectedAdditionalRoles.indexOf(Groups.Roles.MORGANA) != -1);
-                return <RoleCard key={r} onClick={() => { if (isSelectable) this.onRoleCardClick(r); }} isSelectable={isSelectable} isSelected={isSelected} role={r}/>;
-              })
-            }
-          </div>
+        <div className="row" style={{ marginBottom: '10px' }}>
           {
-            group.players.length >= Groups.MIN_PLAYERS_COUNT ?
-              <div className="form-group">
-                <button className="btn btn-success" onClick={this.start}>Start playing</button>
-              </div> : null
+            [Groups.Roles.PERCIVAL, Groups.Roles.MORDRED, Groups.Roles.MORGANA, Groups.Roles.OBERON].map(r => {
+              const isSelected = this.state.selectedAdditionalRoles.indexOf(r) != -1;
+              const isSelectable = isSelected ||
+                this.state.selectedAdditionalRoles.filter(r => r < 0).length < group.getEvilPlayersCount() - 1 ||
+                (r == Groups.Roles.PERCIVAL && this.state.selectedAdditionalRoles.indexOf(Groups.Roles.MORGANA) != -1);
+              return <RoleCard key={r} onClick={() => { if (isSelectable) this.onRoleCardClick(r); }} isSelectable={isSelectable} isSelected={isSelected} role={r}/>;
+            })
           }
         </div>
+        {
+          group.players.length >= Groups.MIN_PLAYERS_COUNT ?
+            <div className="form-group">
+              <button className="btn btn-success" onClick={this.start}>Start playing</button>
+            </div> : null
+        }
       </div>
     ) : null;
   }
@@ -82,6 +76,6 @@ export default class AdditionalRolesPanel extends React.Component {
   }
 }
 
-AdditionalRolesPanel.propTypes = {
+RolesContent.propTypes = {
   group: React.PropTypes.object,
 };

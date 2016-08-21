@@ -270,7 +270,7 @@ Groups.helpers({
         situation.status = ['Waiting for more players'];
         situation.slot = null;
       } else {
-        situation.status = ['Ready', ' (Waiting for owner ', <b key="owner">{this.getOwner().username}</b>, ' to start game)'];
+        situation.status = ['Ready to play', ' (Waiting for owner ', <b key="owner">{this.getOwner().username}</b>, ' to start game)'];
         situation.slot = playersCount < Groups.MAX_PLAYERS_COUNT ? true : false;
       }
     } else {
@@ -407,7 +407,7 @@ Groups.Roles = {
   PERCIVAL: 3,        // Knows who Merlin is and is in a position to help protect Merlin's identity (blue sky, #50C1CF)
   // Evil
   MINION: -1,         // Minion of Mordred: are made aware of each other without the good players knowing (red, #E74C3C)
-  ASSASSIN: -2,       // Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game (purple, #9B59B6) 
+  ASSASSIN: -2,       // Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game (purple, #9B59B6)
   MORDRED: -3,        // Does not reveal his identity to Merlin, leaving Merlin in the dark (orange, #F39C12)
   MORGANA: -4,        // Appears to be Merlin, revealing herself to Percival as Merlin (dark, #34495E)
   OBERON: -5,         // Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players (aero, #9CC2CB)

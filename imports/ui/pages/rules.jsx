@@ -1,5 +1,5 @@
 import React from 'react';
-MediaQuery = require('react-responsive');
+import { MediumDevice, SmallDevice, SmallAndTinyDevice, TinyDevice } from '../layouts/devices.jsx';
 
 export default class Rules extends React.Component {
 
@@ -136,97 +136,129 @@ export default class Rules extends React.Component {
         Source: <a href="https://en.wikipedia.org/wiki/The_Resistance_(game)">Wikipedia</a>
       </div>
     );
-    const rolesContent = (
+    const roleColStyle={ width: '15%' };
+    const rolesContentTwoCols = (
       <div>
         <table className="table table-bordered projects">
           <tbody>
             <tr>
-              <td style={{ width: '15%' }}><img src="/images/roles/servant.jpg" className="img-responsive"/></td>
+              <td style={roleColStyle}><img src="/images/roles/servant.jpg" className="img-responsive"/></td>
               <td><b className="avalon-role-servant">Servant</b>: Loyal servant of Arthur, only knows how many evil players exist, not who they are.</td>
             </tr>
             <tr>
-              <td><img src="/images/roles/merlin.jpg" className="img-responsive"/></td>
+              <td style={roleColStyle}><img src="/images/roles/merlin.jpg" className="img-responsive"/></td>
               <td><b className="avalon-role-merlin">Merlin</b>: Knows who the evil players are.</td>
             </tr>
             <tr>
-              <td><img src="/images/roles/percival.jpg" className="img-responsive"/></td>
+              <td style={roleColStyle}><img src="/images/roles/percival.jpg" className="img-responsive"/></td>
               <td><b className="avalon-role-percival">Percival</b> (<i>addition</i>): Knows who Merlin is and is in a position to help protect Merlin's identity.</td>
             </tr>
             <tr>
-              <td><img src="/images/roles/minion.jpg" className="img-responsive"/></td>
+              <td style={roleColStyle}><img src="/images/roles/minion.jpg" className="img-responsive"/></td>
               <td><b className="avalon-role-minion">Minion</b>: Minion of Mordred, are made aware of each other without the good players knowing.</td>
             </tr>
             <tr>
-              <td><img src="/images/roles/assassin.jpg" className="img-responsive"/></td>
+              <td style={roleColStyle}><img src="/images/roles/assassin.jpg" className="img-responsive"/></td>
               <td><b className="avalon-role-assassin">Assassin</b>: Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game.</td>
             </tr>
             <tr>
-              <td><img src="/images/roles/mordred.jpg" className="img-responsive"/></td>
+              <td style={roleColStyle}><img src="/images/roles/mordred.jpg" className="img-responsive"/></td>
               <td><b className="avalon-role-mordred">Mordred</b> (<i>addition</i>): Does not reveal his identity to Merlin, leaving Merlin in the dark.</td>
             </tr>
             <tr>
-              <td><img src="/images/roles/morgana.jpg" className="img-responsive"/></td>
+              <td style={roleColStyle}><img src="/images/roles/morgana.jpg" className="img-responsive"/></td>
               <td><b className="avalon-role-morgana">Morgana</b> (<i>addition</i>): Appears to be Merlin, revealing herself to Percival as Merlin.</td>
             </tr>
             <tr>
-              <td><img src="/images/roles/oberon.jpg" className="img-responsive"/></td>
+              <td style={roleColStyle}><img src="/images/roles/oberon.jpg" className="img-responsive"/></td>
               <td><b className="avalon-role-oberon">Oberon</b> (<i>addition</i>): Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players.</td>
             </tr>
           </tbody>
         </table>
       </div>
     );
-    const style = { width: '40px' };
+    const rolesContentFourCols = (
+      <div>
+        <table className="table table-bordered projects">
+          <tbody>
+            <tr>
+              <td style={roleColStyle}><img src="/images/roles/servant.jpg" className="img-responsive"/></td>
+              <td><b className="avalon-role-servant">Servant</b>: Loyal servant of Arthur, only knows how many evil players exist, not who they are.</td>
+              <td style={roleColStyle}><img src="/images/roles/merlin.jpg" className="img-responsive"/></td>
+              <td><b className="avalon-role-merlin">Merlin</b>: Knows who the evil players are.</td>
+            </tr>
+            <tr>
+              <td style={roleColStyle}><img src="/images/roles/percival.jpg" className="img-responsive"/></td>
+              <td><b className="avalon-role-percival">Percival</b> (<i>addition</i>): Knows who Merlin is and is in a position to help protect Merlin's identity.</td>
+              <td style={roleColStyle}><img src="/images/roles/minion.jpg" className="img-responsive"/></td>
+              <td><b className="avalon-role-minion">Minion</b>: Minion of Mordred, are made aware of each other without the good players knowing.</td>
+            </tr>
+            <tr>
+              <td style={roleColStyle}><img src="/images/roles/assassin.jpg" className="img-responsive"/></td>
+              <td><b className="avalon-role-assassin">Assassin</b>: Guesses Merlin's identity to take last chance of redeeming when the evil players lose the game.</td>
+              <td style={roleColStyle}><img src="/images/roles/mordred.jpg" className="img-responsive"/></td>
+              <td><b className="avalon-role-mordred">Mordred</b> (<i>addition</i>): Does not reveal his identity to Merlin, leaving Merlin in the dark.</td>
+            </tr>
+            <tr>
+              <td style={roleColStyle}><img src="/images/roles/morgana.jpg" className="img-responsive"/></td>
+              <td><b className="avalon-role-morgana">Morgana</b> (<i>addition</i>): Appears to be Merlin, revealing herself to Percival as Merlin.</td>
+              <td style={roleColStyle}><img src="/images/roles/oberon.jpg" className="img-responsive"/></td>
+              <td><b className="avalon-role-oberon">Oberon</b> (<i>addition</i>): Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+    const symbolColStyle = { width: '40px' };
     const symbolsContent = (
       <div>
         <table className="table table-bordered projects">
           <tbody>
             <tr>
-              <td style={style}><img src="/images/tokens/selected.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/selected.png" className="img-responsive"/></td>
               <td>Selected additional role.</td>
-              <td style={style}><img src="/images/tokens/guessed.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/guessed.png" className="img-responsive"/></td>
               <td>Guessed as Merlin.</td>
             </tr>
             <tr>
-              <td style={style}><img src="/images/tokens/leader.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/leader.png" className="img-responsive"/></td>
               <td>Leader.</td>
-              <td style={style}><img src="/images/tokens/member.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/member.png" className="img-responsive"/></td>
               <td>Team member.</td>
             </tr>
             <tr>
-              <td style={style}><img src="/images/tokens/undecided.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/undecided.png" className="img-responsive"/></td>
               <td>Undecided.</td>
-              <td style={style}><img src="/images/tokens/waiting.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/waiting.png" className="img-responsive"/></td>
               <td>Waiting for vote.</td>
             </tr>
             <tr>
-              <td style={style}><img src="/images/tokens/approved.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/approved.png" className="img-responsive"/></td>
               <td>Approved team.</td>
-              <td style={style}><img src="/images/tokens/denied.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/denied.png" className="img-responsive"/></td>
               <td>Denied team.</td>
             </tr>
             <tr>
-              <td style={style}><img src="/images/tokens/voted-success.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/voted-success.png" className="img-responsive"/></td>
               <td>Voted success.</td>
-              <td style={style}><img src="/images/tokens/voted-fail.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/voted-fail.png" className="img-responsive"/></td>
               <td>Voted fail.</td>
             </tr>
             <tr>
-              <td style={style}><img src="/images/tokens/playing.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/playing.png" className="img-responsive"/></td>
               <td>Mission is playing.</td>
-              <td style={style}><img src="/images/tokens/mission-denied.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/mission-denied.png" className="img-responsive"/></td>
               <td>Mission is denied.</td>
             </tr>
             <tr>
-              <td style={style}><img src="/images/tokens/mission-success.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/mission-success.png" className="img-responsive"/></td>
               <td>Mission success.</td>
-              <td style={style}><img src="/images/tokens/mission-fail.png" className="img-responsive"/></td>
+              <td style={symbolColStyle}><img src="/images/tokens/mission-fail.png" className="img-responsive"/></td>
               <td>Mission fail.</td>
             </tr>
             <tr>
-              <td style={style}>
-                <div className="avalon-token" style={{ width: '100%', backgroundColor: '#3498DB', borderRadius: '50%' }}>
-                  <span style={{ fontSize: 'larger' }}>4</span>
+              <td style={symbolColStyle}>
+                <div className="avalon-token" style={{ width: '100%', backgroundImage: `url("/images/tokens/mission-members-4.png")` }}>
                   <img className="img-responsive avalon-token-mark-bottom" style={{ width: '16px', height: '16px', bottom: '-6px', right: '-6px' }} src="/images/tokens/more-fail-votes.png"/>
                 </div>
               </td>
@@ -247,9 +279,9 @@ export default class Rules extends React.Component {
           </div>
         </div>
         <div className="clearfix"></div>
-        <MediaQuery minWidth={480}>
+        <MediumDevice>
           <div className="row">
-            <div className="col-md-8">
+            <div className="col-xs-8">
               <div className="x_panel">
                 <div className="x_title">
                   <h3>Gameplay</h3>
@@ -260,14 +292,14 @@ export default class Rules extends React.Component {
                 </div>
               </div>
             </div>
-            <div className="col-md-4">
+            <div className="col-xs-4">
               <div className="x_panel">
                 <div className="x_title">
                   <h3>Roles</h3>
                   <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
-                  {rolesContent}
+                  {rolesContentTwoCols}
                 </div>
               </div>
               <div className="x_panel">
@@ -281,8 +313,8 @@ export default class Rules extends React.Component {
               </div>
             </div>
           </div>
-        </MediaQuery>
-        <MediaQuery maxWidth={480}>
+        </MediumDevice>
+        <SmallAndTinyDevice>
           <div className="x_panel">
             <div className="x_content">
               <div role="tabpanel">
@@ -296,7 +328,8 @@ export default class Rules extends React.Component {
                     {gameplayContent}
                   </div>
                   <div role="tabpanel" className="tab-pane fade" id="tab_roles">
-                    {rolesContent}
+                    <SmallDevice>{rolesContentFourCols}</SmallDevice>
+                    <TinyDevice>{rolesContentTwoCols}</TinyDevice>
                   </div>
                   <div role="tabpanel" className="tab-pane fade" id="tab_symbols">
                     {symbolsContent}
@@ -305,7 +338,7 @@ export default class Rules extends React.Component {
               </div>
             </div>
           </div>
-        </MediaQuery>
+        </SmallAndTinyDevice>
       </div>
     );
   }

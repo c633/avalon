@@ -1,7 +1,9 @@
 import React from 'react';
-import AdditionalRolesPanel from '../components/additional_roles_panel.jsx';
-import PlayersPanel from '../components/players_panel.jsx';
-import HistoryPanel from '../components/history_panel.jsx';
+import RolesContent from '../components/roles_content.jsx';
+import PlayersContent from '../components/players_content.jsx';
+import MessagesContent from '../components/messages_content.jsx';
+import SummariesContent from '../components/summaries_content.jsx';
+import { MediumDevice, SmallAndTinyDevice } from '../layouts/devices.jsx';
 
 export default class GroupPage extends React.Component {
 
@@ -11,21 +13,71 @@ export default class GroupPage extends React.Component {
     const { group, loaded } = this.props;
     return loaded ? (
       <div>
-        <div className="page-title">
-          <div className="title_left">
-            <h3><small></small></h3>
+        <MediumDevice>
+          <div className="row">
+            <div className="col-xs-8">
+              <div className="x_panel">
+                <div className="x_content">
+                  <RolesContent group={group}/>
+                  <PlayersContent group={group}/>
+                </div>
+              </div>
+            </div>
+            <div className="col-xs-4">
+              <div className="x_panel">
+                <div className="x_title">
+                  <h2><b>Group: {group.name}</b> (Owner: {group.getOwner().username})</h2>
+                  <div className="clearfix"></div>
+                </div>
+                <div className="x_content">
+                  <div role="tabpanel">
+                    <ul className="nav nav-tabs bar_tabs" role="tablist">
+                      <li role="presentation" className="active"><a href="#tab_messages" role="tab" data-toggle="tab" aria-expanded="false">Messages</a></li>
+                      <li role="presentation" className=""><a href="#tab_summaries" role="tab" data-toggle="tab" aria-expanded="true">Summaries</a></li>
+                    </ul>
+                    <div className="tab-content">
+                      <div role="tabpanel" className="tab-pane fade active in" id="tab_messages">
+                        <MessagesContent group={group}/>
+                      </div>
+                      <div role="tabpanel" className="tab-pane fade" id="tab_summaries">
+                        <SummariesContent group={group}/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="clearfix"></div>
-        <div className="row">
-          <div className="col-md-8">
-            <AdditionalRolesPanel group={group}/>
-            <PlayersPanel group={group}/>
+        </MediumDevice>
+        <SmallAndTinyDevice>
+          <div className="x_panel">
+            <div className="x_title">
+              <h2><b>Group: {group.name}</b> (Owner: {group.getOwner().username})</h2>
+              <div className="clearfix"></div>
+            </div>
+            <div className="x_content">
+              <div role="tabpanel">
+                <ul className="nav nav-tabs bar_tabs" role="tablist">
+                  <li role="presentation" className="active"><a href="#tab_gameplay" role="tab" data-toggle="tab" aria-expanded="false">Gameplay</a></li>
+                  <li role="presentation" className=""><a href="#tab_messages" role="tab" data-toggle="tab" aria-expanded="false">Messages</a></li>
+                  <li role="presentation" className=""><a href="#tab_summaries" role="tab" data-toggle="tab" aria-expanded="true">Summary</a></li>
+                </ul>
+                <div className="tab-content">
+                  <div role="tabpanel" className="tab-pane fade active in" id="tab_gameplay">
+                    <RolesContent group={group}/>
+                    <PlayersContent group={group}/>
+                  </div>
+                  <div role="tabpanel" className="tab-pane fade" id="tab_messages">
+                    <MessagesContent group={group}/>
+                  </div>
+                  <div role="tabpanel" className="tab-pane fade" id="tab_summaries">
+                    <SummariesContent group={group}/>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="col-md-4">
-            <HistoryPanel group={group}/>
-          </div>
-        </div>
+        </SmallAndTinyDevice>
       </div>
     ) : null;
   }

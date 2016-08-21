@@ -17,17 +17,17 @@ export default class UserPage extends React.Component {
         </div>
         <div className="clearfix"></div>
         <div className="row">
-          <div className="col-md-12 col-sm-12 col-xs-12">
+          <div className="col-sm-12 col-xs-12">
             <div className="x_panel">
               <div className="x_title">
                 <h2>Brief information</h2>
                 <div className="clearfix"></div>
               </div>
               <div className="x_content">
-                <div className="col-md-3 col-sm-3 col-xs-12 profile_left">
+                <div className="col-sm-3 col-xs-12 profile_left">
                   <UserBrief user={user}/>
                 </div>
-                <div className="col-md-9 col-sm-9 col-xs-12">
+                <div className="col-sm-9 col-xs-12">
                   <UserActivity user={user}/>
                 </div>
               </div>

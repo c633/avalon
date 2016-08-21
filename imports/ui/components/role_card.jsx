@@ -13,13 +13,11 @@ export default class RoleCard extends React.Component {
     return (
       <div onClick={this.props.onClick} className="avalon-col-card-role profile_details">
         <button className={`well profile_view avalon-card${isSelectable ? '' : '-disable'}`}>
-          <div className="col-sm-12">
-            {isSelected ? <img src="/images/tokens/selected.png" className="img-responsive avalon-card-mark-right"/> : null}
-            <img src={`/images/roles/${image}.jpg`} className="img-responsive"/>
-            <p className={`avalon-${side}`}><b>{side}</b></p>
-          </div>
-          <div className="col-xs-12 bottom text-center">
-            <div className="col-xs-12 col-sm-12 emphasis">
+          {isSelected ? <img src="/images/tokens/selected.png" className="img-responsive avalon-card-mark-right"/> : null}
+          <img src={`/images/roles/${image}.jpg`} className="img-responsive avalon-avatar"/>
+          <p className={`avalon-${side}`}><b>{side}</b></p>
+          <div className="bottom text-center">
+            <div className="emphasis">
               <h2><b>{name}</b></h2>
             </div>
           </div>

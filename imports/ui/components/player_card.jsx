@@ -13,15 +13,13 @@ export default class PlayerCard extends React.Component {
     return (
       <div onClick={this.props.onClick} className={`avalon-col-card-player-${playersCount} profile_details`}>
         <button className={`well profile_view avalon-card${isSelectable == null ? '-disable' : isSelectable ? '' : '-unselectable'} ${side != null ? `avalon-${side ? 'good' : 'evil'}` : ''}`}>
-          <div className="col-sm-12">
-            {isLeader ? <img data-container="body" data-toggle="tooltip" title="Leader" src="/images/tokens/leader.png" className="img-responsive avalon-card-mark-top"/> : null}
-            {isMember ? <img data-container="body" data-toggle="tooltip" title="Member" src="/images/tokens/member.png" className="img-responsive avalon-card-mark-right"/> : null}
-            {isGuessed ? <img data-container="body" data-toggle="tooltip" title="Guessed as Merlin" src="/images/tokens/guessed.png" className="img-responsive avalon-card-mark-right"/> : null}
-            <p><b>{player.username}{Meteor.userId() == player._id ? ' (Me)' : ''}</b></p>
-            <img src={player.getAvatarSrc()} className="img-responsive avalon-avatar avalon-card-player-avatar"/>
-          </div>
-          <div className="col-xs-12 bottom text-center">
-            <div className="col-xs-12 col-sm-12 emphasis">
+          {isLeader ? <img data-container="body" data-toggle="tooltip" title="Leader" src="/images/tokens/leader.png" className="img-responsive avalon-card-mark-top"/> : null}
+          {isMember ? <img data-container="body" data-toggle="tooltip" title="Member" src="/images/tokens/member.png" className="img-responsive avalon-card-mark-right"/> : null}
+          {isGuessed ? <img data-container="body" data-toggle="tooltip" title="Guessed as Merlin" src="/images/tokens/guessed.png" className="img-responsive avalon-card-mark-right"/> : null}
+          <p><b>{player.username}{Meteor.userId() == player._id ? ' (Me)' : ''}</b></p>
+          <img src={player.getAvatarSrc()} className="img-responsive avalon-avatar avalon-card-player-avatar"/>
+          <div className="bottom text-center">
+            <div className="emphasis">
               <h2 className="avalon-card-text"><b>{role}</b></h2>
             </div>
           </div>

@@ -61,17 +61,12 @@ export default class UserActivity extends React.Component {
     };
     return (
       <div>
-        <div className="profile_title">
-          <div className="col-md-6">
-            <h2>Monthly Activity Report</h2>
-          </div>
-        </div>
         <Chart type={Chart.Types.BAR} config={groupChartConfig}/>
         <div className="row">
-          <div className="col-md-3">
+          <div className="col-sm-3">
             <Chart type={Chart.Types.DONUT} config={roleChartConfig}/>
           </div>
-          <div className="col-md-9">
+          <div className="col-sm-9">
             <Chart type={Chart.Types.AREA} config={teamChartConfig}/>
           </div>
         </div>

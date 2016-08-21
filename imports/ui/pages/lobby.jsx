@@ -14,7 +14,7 @@ export default class Lobby extends React.Component {
             <h3>Lobby <small>Listing</small></h3>
           </div>
           <div className="title_right">
-            <div className="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+            <div className="col-sm-8 form-group pull-right top_search">
               <div className="input-group">
                 <input type="text" className="form-control" placeholder="Search for..."/>
                 <span className="input-group-btn">

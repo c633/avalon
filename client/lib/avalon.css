@@ -24,7 +24,7 @@ body {
 }
 
 .profile_details .profile_view .bottom {
-  padding: 0px;
+  padding: 2px 0px;
 }
 
 ul.bar_tabs {
@@ -59,11 +59,15 @@ ul.top_profiles li:nth-child(odd) {
   background-color: #F0F0F0;
 }
 
-.top_nav .nav>li>a:focus,
-.top_nav .nav>li>a:hover,
-.top_nav .nav .open>a,
-.top_nav .nav .open>a:focus,
-.top_nav .nav .open>a:hover {
+.navbar-nav > li > a {
+  padding: 13px 10px;
+}
+
+.top_nav .nav > li > a:focus,
+.top_nav .nav > li > a:hover,
+.top_nav .nav .open > a,
+.top_nav .nav .open > a:focus,
+.top_nav .nav .open > a:hover {
   background: #B9B9B9;
 }
 
@@ -77,7 +81,35 @@ h3 small {
 }
 
 .tooltip-inner {
+  background-color: #34495E;
   max-width: 400px;
+}
+
+.tooltip.in {
+  opacity: 1 !important;
+}
+
+ul.bar_tabs>li a,
+.x_panel {
+  padding: 10px 8px;
+}
+
+.top_nav .navbar-right {
+  width: initial;
+}
+
+.x_title h2 {
+  overflow: inherit;
+}
+
+@media (max-width: 479px) {
+  ul.bar_tabs > li.active {
+    border-right: none;
+  }
+
+  ul.bar_tabs > li {
+    margin-left: 0px;
+  }
 }
 
 /*
@@ -229,7 +261,14 @@ button.avalon-card-disable,
 button.avalon-card > div,
 button.avalon-card-unselectable > div,
 button.avalon-card-disable > div {
-  width: 100%;
+  margin: 0px auto;
+  display: block !important;
+}
+
+button.avalon-card,
+button.avalon-card-unselectable,
+button.avalon-card-disable {
+  width: 80%;
 }
 
 .avalon-card-mark-left,
@@ -241,25 +280,20 @@ button.avalon-card-disable > div {
   height: 32px;
 }
 
-.avalon-card-mark-left {
-  top: -25px;
-  left: -15px;
-}
-
 .avalon-card-mark-top {
-  top: -30px;
+  top: -20px;
   left: 50%;
   margin-left: -16px;
 }
 
 .avalon-card-mark-right {
-  top: -25px;
-  right: -15px;
+  top: -15px;
+  right: 5px;
 }
 
 .avalon-card-mark-bottom {
-  bottom: 10px;
-  right: 0px;
+  bottom: -10px;
+  right: 5px;
 }
 
 .avalon-token-mark-top,
@@ -290,30 +324,73 @@ button.avalon-card-disable > div {
   position: relative;
   min-height: 1px;
   float: left;
-  padding: 0px 20px;
+  padding: 0px 5px;
+  width: 50%;
+  margin-bottom: 10px;
 }
 
-.avalon-col-card-role {
-  width: 25%;
+@media (min-width: 480px) {
+  .avalon-col-card-role,
+  .avalon-col-tn-6 {
+    width: 50%;
+  }
+
+  .avalon-col-card-player-5,
+  .avalon-col-card-player-6,
+  .avalon-col-card-player-7,
+  .avalon-col-card-player-8,
+  .avalon-col-card-player-9,
+  .avalon-col-card-player-10 {
+    width: 33.33333333%;
+  }
 }
 
-.avalon-col-card-player-5,
-.avalon-col-card-player-6 {
-  width: 33.33333333%;
+@media (min-width: 624px) {
+  .avalon-col-card-role {
+    width: 25%;
+  }
+
+  .avalon-col-nr-4,
+  .avalon-col-card-player-5,
+  .avalon-col-card-player-6 {
+    width: 33.33333333%;
+  }
+
+  .avalon-col-nr-8 {
+    width: 66.66666666%;
+  }
+
+  .avalon-col-card-player-7,
+  .avalon-col-card-player-8,
+  .avalon-col-card-player-9,
+  .avalon-col-card-player-10 {
+    width: 25%;
+  }
 }
 
-.avalon-col-card-player-7,
-.avalon-col-card-player-8 {
-  width: 25%;
-}
+@media (min-width: 768px) {
+  .avalon-col-card-role {
+    width: 25%;
+  }
 
-.avalon-col-card-player-9,
-.avalon-col-card-player-10 {
-  width: 20%;
+  .avalon-col-card-player-5,
+  .avalon-col-card-player-6 {
+    width: 33.33333333%;
+  }
+
+  .avalon-col-card-player-7,
+  .avalon-col-card-player-8 {
+    width: 25%;
+  }
+
+  .avalon-col-card-player-9,
+  .avalon-col-card-player-10 {
+    width: 20%;
+  }
 }
 
 .avalon-avatar {
-  width: 75%;
+  width: 85%;
   margin: 5px auto;
 }
 
@@ -328,6 +405,7 @@ button.avalon-card-disable > div {
 
 .avalon-hint {
   display: flex;
+  margin-bottom: 5px;
 }
 
 .avalon-hint > img {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { join, leave } from '../../api/groups/methods.js';
+import { MediumAndSmallDevice, TinyDevice } from '../layouts/devices.jsx';
 
 export default class GroupRow extends React.Component {
   constructor(props) {
@@ -23,28 +24,37 @@ export default class GroupRow extends React.Component {
           <br/>
           <small>Owner: {group.getOwner().username}</small>
         </td>
-        <td>
-          <ul className="list-inline">
-            {group.getPlayers().map(p =>
-              <li key={p.user._id}>
-                <a href={`/users/${p.user._id}`}>
-                  <img src={p.user.getAvatarSrc()} className="avatar" alt="Avatar" data-container="body" data-toggle="tooltip" title={p.user.username}/>
-                </a>
-              </li>
-            )}
-          </ul>
-        </td>
+        <MediumAndSmallDevice>
+          <td>
+            <ul className="list-inline">
+              {group.getPlayers().map(p =>
+                <li key={p.user._id}>
+                  <a href={`/users/${p.user._id}`}>
+                    <img src={p.user.getAvatarSrc()} className="avatar" alt="Avatar" data-container="body" data-toggle="tooltip" title={p.user.username}/>
+                  </a>
+                </li>
+              )}
+            </ul>
+          </td>
+        </MediumAndSmallDevice>
         <td>
           {
             isPlaying ?
               <span className="label label-info">Playing</span> :
-              <span className={`label label-${situation.slot == null ? 'primary' : 'warning'}`}>{situation.status[0]}</span>
+              [
+                <MediumAndSmallDevice key="small">
+                  <span className={`label label-${situation.slot == null ? 'primary' : 'warning'}`}>{situation.status[0]}</span>
+                </MediumAndSmallDevice>,
+                <TinyDevice key="tiny">
+                  <span className={`label label-${situation.slot == null ? 'primary' : 'warning'}`}>{situation.status[0].split(' ')[0]}</span>
+                </TinyDevice>
+              ]
           }
           {
             situation.slot == false ?
               [
                 <br key="br"/>,
-                <span key="span" className="label label-default">Group is full</span>
+                <span key="span" className="label label-default">Full</span>
               ] : null
           }
         </td>
