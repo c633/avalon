@@ -19,6 +19,7 @@ import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 class GroupsCollection extends Mongo.Collection {
   insert(group, callback) {
     group.players = [{ id: `${group.ownerId}` }];
+    group.createdAt = new Date();
     return super.insert(group, callback);
   }
 
@@ -26,7 +27,7 @@ class GroupsCollection extends Mongo.Collection {
     return super.update(selector, modifier);
   }
 
-  remove(selector) {
+  remove(selector, callback) {
     return super.remove(selector, callback);
   }
 }
@@ -68,7 +69,8 @@ Groups.schema = new SimpleSchema({
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
   guessMerlin: { type: Boolean, optional: true }, // Indicate whether Assassin correctly guesses Merlin's identity or not
-  messages: { type: [MessagesSchema], defaultValue: [] }
+  messages: { type: [MessagesSchema], defaultValue: [] },
+  createdAt: { type: Date }
 });
 
 Groups.attachSchema(Groups.schema);

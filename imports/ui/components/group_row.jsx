@@ -22,7 +22,7 @@ export default class GroupRow extends React.Component {
         <td>
           <a href={`/groups/${group._id}`}><b>{group.name}</b></a>
           <br/>
-          <small>Owner: {group.getOwner().username}</small>
+          <small>Owner: <a href={`/users/${group.getOwner()._id}`}>{group.getOwner().username}</a></small>
         </td>
         <MediumAndSmallDevice>
           <td>
@@ -59,13 +59,13 @@ export default class GroupRow extends React.Component {
           }
         </td>
         <td>
+          <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark"><i className="fa fa-group"></i> Go to</a>
           {
             !!Meteor.userId() && (joined || situation.slot != false) && !isPlaying ?
               !joined && !isPlaying ?
                 <a className="btn btn-sm btn-success" onClick={this.joinGroup}><i className="fa fa-sign-in"></i> Join</a> :
                 <a className="btn btn-sm btn-danger" onClick={this.leaveGroup}><i className="fa fa-sign-out"></i> Leave</a> : null
           }
-          <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark"><i className="fa fa-group"></i> Go to</a>
         </td>
       </tr>
     );

@@ -1,6 +1,5 @@
 import React from 'react';
 import Chart from './chart.jsx';
-import { Groups } from '../../api/groups/groups.jsx';
 
 export default class UserActivity extends React.Component {
 
@@ -19,12 +18,6 @@ export default class UserActivity extends React.Component {
           return { date: c.date, winTimesCount: c.winTimesCount + (a.result ? 1 : 0), loseTimesCount: c.loseTimesCount + (!a.result ? 1 : 0) };
         }, { date: date + ` ${monthNames[month]}`, winTimesCount: 0, loseTimesCount: 0 })
     );
-    const roleChartData = activities.reduce((c, a) => {
-      c[c.findIndex(r => r.role == a.role)].count++;
-      return c;
-    }, Object.keys(Groups.Roles).map(r => { return { name: r, role: Groups.Roles[r], count: 0 }; }).filter(r => r.role != Groups.Roles.UNDECIDED)).map(r => {
-      return { label: r.name, value: r.count };
-    });
     const teamChartData = dates.map(date =>
       activities.filter(a =>
         a.finishedAt.getDate() == date).reduce((c, a) => {
@@ -38,13 +31,6 @@ export default class UserActivity extends React.Component {
       barColors: ['#26B99A', '#D9534F'],
       labels: ['Win', 'Lose'],
       hideHover: 'auto',
-      resize: true
-    };
-    const hasData = roleChartData.filter(r => r.value > 0).length > 0;
-    const roleChartConfig = {
-      data: hasData ? roleChartData : [{ label: 'No data', value: 1 }],
-      colors: ['#1ABB9C', '#3498DB', '#50C1CF', '#E74C3C', '#9B59B6', '#F39C12', '#34495E', '#9CC2CB'],
-      formatter: y => hasData ? y + ' times' : '',
       resize: true
     };
     const teamChartConfig = {
@@ -62,14 +48,7 @@ export default class UserActivity extends React.Component {
     return (
       <div>
         <Chart type={Chart.Types.BAR} config={groupChartConfig}/>
-        <div className="row">
-          <div className="col-sm-3">
-            <Chart type={Chart.Types.DONUT} config={roleChartConfig}/>
-          </div>
-          <div className="col-sm-9">
-            <Chart type={Chart.Types.AREA} config={teamChartConfig}/>
-          </div>
-        </div>
+        <Chart type={Chart.Types.AREA} config={teamChartConfig}/>
       </div>
     );
   }

@@ -12,17 +12,13 @@ export default class UserPage extends React.Component {
       <div>
         <div className="page-title">
           <div className="title_left">
-            <h3>User Profile</h3>
+            <h3>{user.username}</h3>
           </div>
         </div>
         <div className="clearfix"></div>
         <div className="row">
           <div className="col-sm-12 col-xs-12">
             <div className="x_panel">
-              <div className="x_title">
-                <h2>Brief information</h2>
-                <div className="clearfix"></div>
-              </div>
               <div className="x_content">
                 <div className="col-sm-3 col-xs-12 profile_left">
                   <UserBrief user={user}/>
