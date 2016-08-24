@@ -7,18 +7,16 @@ export default class RoleCard extends React.Component {
 
   render() {
     const { isSelectable, isSelected, role } = this.props;
-    const name = Groups.RoleNames[role];
-    const image = name.toLowerCase();
-    const side = role > 0 ? 'good' : 'evil';
+    const side = Groups.ROLES[role].side ? 'good' : 'evil';
     return (
       <div onClick={this.props.onClick} className="avalon-col-card-role profile_details">
         <button className={`well profile_view avalon-card${isSelectable ? '' : '-disable'}`}>
           {isSelected ? <img src="/images/tokens/selected.png" className="img-responsive avalon-card-mark-right"/> : null}
-          <img src={`/images/roles/${image}.jpg`} className="img-responsive avalon-avatar"/>
+          <img src={`/images/roles/${role.toLowerCase()}.jpg`} className="img-responsive avalon-avatar"/>
           <p className={`avalon-${side}`}><b>{side}</b></p>
           <div className="bottom text-center">
             <div className="emphasis">
-              <h2><b>{name}</b></h2>
+              <h2><b>{role}</b></h2>
             </div>
           </div>
         </button>
@@ -30,5 +28,5 @@ export default class RoleCard extends React.Component {
 RoleCard.propTypes = {
   isSelectable: React.PropTypes.bool,
   isSelected: React.PropTypes.bool,
-  role: React.PropTypes.number,
+  role: React.PropTypes.string,
 };

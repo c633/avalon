@@ -27,11 +27,11 @@ export default class RolesContent extends React.Component {
         </div>
         <div className="row" style={{ marginBottom: '10px' }}>
           {
-            [Groups.Roles.PERCIVAL, Groups.Roles.MORDRED, Groups.Roles.MORGANA, Groups.Roles.OBERON].map(r => {
+            ['Percival', 'Mordred', 'Morgana', 'Oberon'].map(r => {
               const isSelected = this.state.selectedAdditionalRoles.indexOf(r) != -1;
               const isSelectable = isSelected ||
-                this.state.selectedAdditionalRoles.filter(r => r < 0).length < group.getEvilPlayersCount() - 1 ||
-                (r == Groups.Roles.PERCIVAL && this.state.selectedAdditionalRoles.indexOf(Groups.Roles.MORGANA) != -1);
+                this.state.selectedAdditionalRoles.filter(r => !Groups.ROLES[r].side).length < group.getEvilPlayersCount() - 1 ||
+                (r == 'Percival' && this.state.selectedAdditionalRoles.indexOf('Morgana') != -1);
               return <RoleCard key={r} onClick={() => { if (isSelectable) this.onRoleCardClick(r); }} isSelectable={isSelectable} isSelected={isSelected} role={r}/>;
             })
           }
@@ -62,13 +62,13 @@ export default class RolesContent extends React.Component {
     const index = selectedAdditionalRoles.indexOf(role);
     if (index == -1) {
       selectedAdditionalRoles.push(role);
-      if (role == Groups.Roles.PERCIVAL && selectedAdditionalRoles.indexOf(Groups.Roles.MORGANA) == -1) {
-        selectedAdditionalRoles.push(Groups.Roles.MORGANA);
+      if (role == 'Percival' && selectedAdditionalRoles.indexOf('Morgana') == -1) {
+        selectedAdditionalRoles.push('Morgana');
       }
     } else {
       selectedAdditionalRoles.splice(index, 1);
-      const percivalIndex = selectedAdditionalRoles.indexOf(Groups.Roles.PERCIVAL);
-      if (role == Groups.Roles.MORGANA && percivalIndex != -1) {
+      const percivalIndex = selectedAdditionalRoles.indexOf('Percival');
+      if (role == 'Morgana' && percivalIndex != -1) {
         selectedAdditionalRoles.splice(percivalIndex, 1);
       }
     }

@@ -15,7 +15,7 @@ Meteor.startup(() => {
     for (const i of Array(10).keys()) {
       const user = Meteor.users.findOne({ username: `player${i + 1}` });
       Groups.update(Groups.insert({ ownerId: user._id, name: `group${j++}` }), { $push: { players: { $each: players } } });
-      players.push({ id: user._id, role: 0 });
+      players.push({ id: user._id, role: 'Undecided' });
     }
   }
 });

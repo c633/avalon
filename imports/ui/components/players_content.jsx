@@ -21,7 +21,7 @@ export default class PlayersContent extends React.Component {
   render() {
     const { group } = this.props;
     const isSelectingMembers = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
-    const isGuessingMerlin = group.isGuessingMerlin() && group.findPlayerRole(Meteor.userId()) == Groups.Roles.ASSASSIN;
+    const isGuessingMerlin = group.isGuessingMerlin() && group.findPlayerRole(Meteor.userId()) == 'Assassin';
     const leader = group.getLeader();
     const summaries = group.getSummaries();
     return (
@@ -54,17 +54,19 @@ export default class PlayersContent extends React.Component {
           </div>
         </div>
         <div className="row" style={{ marginBottom: '10px' }}>
-          {group.getPlayers().map((player, index) => {
-            const isMember = group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id));
-            const isGuessed = this.state.guessedIndex == index;
-            const isSelectable =
-              isSelectingMembers ?
-                (isMember || this.state.selectedMemberIndices.length < Groups.MISSIONS_MEMBERS_COUNT[group.players.length][summaries.length - 1] ? true : null) :
-                isGuessingMerlin ? !isGuessed : false;
-            return <PlayerCard
-              key={player.user._id} onClick={() => { if (isSelectable) this.onPlayerCardClick(index); }}
-              isSelectable={isSelectable} isMember={isMember} isGuessed={isGuessed} group={group} player={player.user}/>;
-          })}
+          {
+            group.getPlayers().map((player, index) => {
+              const isMember = group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id));
+              const isGuessed = this.state.guessedIndex == index;
+              const isSelectable =
+                isSelectingMembers ?
+                  (isMember || this.state.selectedMemberIndices.length < Groups.MISSIONS_MEMBERS_COUNT[group.players.length][summaries.length - 1] ? true : null) :
+                  isGuessingMerlin ? !isGuessed : false;
+              return <PlayerCard
+                key={player.user._id} onClick={() => { if (isSelectable) this.onPlayerCardClick(index); }}
+                isSelectable={isSelectable} isMember={isMember} isGuessed={isGuessed} group={group} player={player.user}/>;
+            }
+          )}
         </div>
         <div className="form-group">
           {isSelectingMembers ? <button className="btn btn-info" onClick={this.selectMembers}>Select members</button> : null}
@@ -80,7 +82,7 @@ export default class PlayersContent extends React.Component {
               <span>
                 <button className="btn btn-success" onClick={() => this.vote(true)}>Vote Success</button>
                 {
-                  group.findPlayerRole(Meteor.userId()) < 0 ?
+                  !Groups.ROLES[group.findPlayerRole(Meteor.userId())].side ?
                     <button className="btn btn-danger" onClick={() => this.vote(false)}>Vote Fail</button> : null
                 }
               </span> : null

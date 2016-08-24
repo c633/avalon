@@ -33,7 +33,7 @@ export const join = new ValidatedMethod({
       throw new Meteor.Error('groups.join.alreadyJoined', 'Already joined this group.');
     }
     Groups.update(groupId, {
-      $push: { players: { id: this.userId, role: 0 } },
+      $push: { players: { id: this.userId, role: 'Undecided' } },
     });
   },
 });
@@ -66,7 +66,7 @@ export const start = new ValidatedMethod({
   validate: new SimpleSchema({
     groupId: { type: String },
     reset: { type: Boolean },
-    additionalRoles: { type: [Number] },
+    additionalRoles: { type: [String] },
   }).validator(),
   run({ groupId, additionalRoles, reset }) {
     let group = Groups.findOne(groupId);
@@ -80,21 +80,21 @@ export const start = new ValidatedMethod({
       if (!group.checkSelectedAdditionalRolesValidation(additionalRoles)) {
         throw new Meteor.Error('groups.start.invalidAdditionalRoles', 'Invalid selected additional roles.');
       }
-      const playersCount = group.players.length;
+      const players = group.players;
+      const playersCount = players.length;
       const evilPlayersCount = group.getEvilPlayersCount();
-      let roles = additionalRoles;
-      roles = roles.concat([Groups.Roles.MERLIN, Groups.Roles.ASSASSIN]); // Required players
-      const servants = Array.from(new Array(playersCount - evilPlayersCount - roles.filter(r => r > 0).length)).map(_ => Groups.Roles.SERVANT);
-      const minions = Array.from(new Array(evilPlayersCount - roles.filter(r => r < 0).length)).map(_ => Groups.Roles.MINION);
-      _.shuffle(roles.concat(servants, minions)).forEach((r, i) => group.players[i].role = r);
+      const roles = additionalRoles.concat(['Merlin', 'Assassin']); // Required players
+      const servants = Array.from(new Array(playersCount - evilPlayersCount - roles.filter(r => Groups.ROLES[r].side).length)).map(() => 'Servant');
+      const minions = Array.from(new Array(evilPlayersCount - roles.filter(r => !Groups.ROLES[r].side).length)).map(() => 'Minion');
+      _.shuffle(roles.concat(servants, minions)).forEach((r, i) => players[i].role = r);
       Groups.update(groupId, {
-        $set: { players: group.players }
+        $set: { players: players }
       });
       group = Groups.findOne(groupId); // Update local variable
       group.startNewMission();
     } else {
       Groups.update(groupId, {
-        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })), messages: [] },
+        $set: { players: group.players.map(player => ({ id: player.id, role: 'Undecided' })), messages: [] },
         $unset: { guessMerlin: true }
       });
     }
@@ -167,7 +167,7 @@ export const guess = new ValidatedMethod({
   run({ groupId, merlinIndex }) {
     let group = Groups.findOne(groupId);
     Groups.update(groupId, {
-      $set: { guessMerlin: group.players[merlinIndex].role == Groups.Roles.MERLIN }
+      $set: { guessMerlin: group.players[merlinIndex].role == 'Merlin' }
     });
     group = Groups.findOne(groupId); // Update local variable
     group.finish();

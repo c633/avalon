@@ -9,7 +9,7 @@ import { Groups } from '../../groups/groups.jsx';
 // [
 //   {
 //     finishedAt: Date,
-//     role: Number,
+//     role: String,
 //     result: Boolean,               // `true` is Win, `false` is Lose
 //     deniedTeamsCount: Number,
 //     successTeamsCount: Number,

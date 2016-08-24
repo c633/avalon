@@ -20,8 +20,8 @@ export default class UserBrief extends React.Component {
     const roleChartData = activities.reduce((c, a) => {
       c[c.findIndex(r => r.role == a.role)].count++;
       return c;
-    }, Object.keys(Groups.Roles).map(r => { return { name: r, role: Groups.Roles[r], count: 0 }; }).filter(r => r.role != Groups.Roles.UNDECIDED)).map(r => {
-      return { label: r.name, value: r.count };
+    }, Object.keys(Groups.ROLES).map(r => { return { role: r, count: 0 }; })).map(r => {
+      return { label: r.role, value: r.count };
     });
     const hasData = roleChartData.filter(r => r.value > 0).length > 0;
     const roleChartConfig = {
