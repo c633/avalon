@@ -125,16 +125,19 @@ Groups.helpers({
   getTeamsCount() {
     return this.missions.reduce((c, m) => c + m.teams.length, 0);
   },
+  getLastTeamsCount() {
+    return this.missions[this.missions.length - 1].teams.length;
+  },
   findRequiredFailVotesCount(missionIndex) {
     return missionIndex == 3 && this.players.length >= 7 ? 2 : 1;
   },
   getSummaries() {
     return this.missions.map((m, i) =>
-      m.teams.map(t => {
+      m.teams.map((t, j) => {
         const summary = { memberIndices: t.memberIndices, denierIndices: [], failVotesCount: null, result: undefined };
         if (t.memberIndices.length != 0 && t.approvals.indexOf(null) == -1) {
           summary.denierIndices = t.approvals.map((a, i) => a ? -1 : i).filter(i => i >= 0);
-          if (t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) { // Denied
+          if (j < Groups.MISSION_TEAMS_COUNT - 1 && t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) { // Denied, Hammer
             summary.result = null;
           } else if (t.successVotes.indexOf(null) == -1) {
             summary.failVotesCount = t.successVotes.filter(a => !a).length;
@@ -162,7 +165,7 @@ Groups.helpers({
     this.startSelectingMembers();
   },
   startSelectingMembers() {
-    if (this.missions[this.missions.length - 1].teams.length >= Groups.MISSION_TEAMS_COUNT) {
+    if (this.getLastTeamsCount() >= Groups.MISSION_TEAMS_COUNT) {
       this.finish();
       return;
     }
@@ -181,11 +184,11 @@ Groups.helpers({
     // const approvals = Array.from(new Array(this.players.length), () => Math.random() > 0.5 ? true : false); // TEST
     const approvals = Array.from(new Array(this.players.length), () => null);
     Groups.update(this._id, {
-      $set: { [`missions.${this.missions.length - 1}.teams.${this.missions[this.missions.length - 1].teams.length - 1}.approvals`]: approvals }
+      $set: { [`missions.${this.missions.length - 1}.teams.${this.getLastTeamsCount() - 1}.approvals`]: approvals }
     });
     // FIXME: Remove redundancy (@ref 'methods' `approve`)
     this.getLastTeam().approvals = approvals; // Update local variable
-    if (this.isDenied()) {
+    if (this.getLastTeamsCount() < Groups.MISSION_TEAMS_COUNT && this.isDenied()) { // Hammer
       this.startSelectingMembers();
     } else if (!this.isWaitingForApproval()) {
       this.startWaitingForVote();
@@ -193,8 +196,8 @@ Groups.helpers({
   },
   startWaitingForVote() {
     const lastMission = this.missions[this.missions.length - 1];
-    // const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role.side ? true : Math.random() > 0.3 ? true : false); // TEST
-    const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role.side ? null : null);
+    // const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => Groups.ROLES[this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role].side ? true : Math.random() > 0.3 ? true : false); // TEST
+    const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => Groups.ROLES[this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role].side ? null : null);
     Groups.update(this._id, {
       $set: { [`missions.${this.missions.length - 1}.teams.${lastMission.teams.length - 1}.successVotes`]: successVotes }
     });
@@ -207,13 +210,14 @@ Groups.helpers({
   startGuessingMerlin() {
     Groups.update(this._id, {
       $set: { guessMerlin: null }
+      // $set: { guessMerlin: Math.random() > 0.5 ? true : false } // TEST
     });
   },
   finish() {
     const playerActivities = [];
     const result = this.getSituation().result;
     for (const p of this.players) {
-      playerActivities.push({ id: p.id, activity: { finishedAt: new Date(), role: p.role, result: p.role.side ? result : !result, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 } });
+      playerActivities.push({ id: p.id, activity: { finishedAt: new Date(), role: p.role, result: Groups.ROLES[p.role].side ? result : !result, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 } });
     };
     for (const m of this.getSummaries()) {
       for (const t of m) {
@@ -239,6 +243,9 @@ Groups.helpers({
   },
   hasLeader(userId) {
     return this.missions.length > 0 ? this.players[(this.getTeamsCount() - 1) % this.players.length].id == userId : false;
+  },
+  hasHammer(userId) {
+    return this.missions.length > 0 ? this.players[(this.getTeamsCount() - this.getLastTeamsCount() + Groups.MISSION_TEAMS_COUNT - 1) % this.players.length].id == userId : false;
   },
   hasMember(userId) {
     return this.getLastTeam() != null && this.getLastTeam().memberIndices.find(i => this.players[i].id == userId) != undefined;
@@ -291,11 +298,7 @@ Groups.helpers({
       } else {
         const result = this.guessMerlin === undefined || this.guessMerlin ? false : true;
         situation.status = result ? [<b key="good" className="avalon-good">Good</b>, ' players win'] : [<b key="evil" className="avalon-evil">Evil</b>, ' players win'];
-        if (this.guessMerlin === undefined) {
-          if (this.missions[this.missions.length - 1].teams.length >= Groups.MISSION_TEAMS_COUNT) {
-            situation.status = situation.status.concat([<br key="br"/>, `(With ${Groups.MISSION_TEAMS_COUNT} denied mission team proposals)`]);
-          }
-        } else {
+        if (this.guessMerlin !== undefined) {
           if (this.guessMerlin) {
             situation.status = situation.status.concat([<br key="br"/>, '(', <i key="assassin" className="avalon-evil">Assassin</i>, ' killed ', <i key="merlin" className="avalon-good">Merlin</i>, ')']);
           } else {
@@ -308,9 +311,12 @@ Groups.helpers({
     return situation;
   },
   findInformation(userId, playerId) {
-    const playerIndex = this.players.map(p => p.id).indexOf(playerId);
-    const role = this.players[playerIndex].role;
+    const indices = this.players.map(p => p.id);
+    const userRole = this.players[indices.indexOf(userId)].role;
+    const playerIndex = indices.indexOf(playerId);
+    const playerRole = this.players[playerIndex].role;
     const otherPlayer = userId != playerId;
+    const role = this.isPlaying() && this.getSituation().result == null && otherPlayer ? Groups.ROLES[userRole] && Groups.ROLES[userRole].visions && Groups.ROLES[userRole].visions[playerRole] || 'Unknown' : playerRole;
     const side = (role == 'Good' ? true : role == 'Evil' ? false : (Groups.ROLES[role] || null) && Groups.ROLES[role].side);
     let status = '';
     if (this.isWaitingForApproval()) {
@@ -401,7 +407,7 @@ Groups.ROLES = {
 };
 
 Groups.MISSIONS_COUNT = 5;
-Groups.MISSIONS_COUNT_TO_WIN = 3;
+Groups.MISSIONS_COUNT_TO_WIN = Math.ceil(Groups.MISSIONS_COUNT / 2);
 Groups.MISSION_TEAMS_COUNT = 5;
 Groups.MISSIONS_MEMBERS_COUNT = {
   5: [2, 3, 2, 3, 3],

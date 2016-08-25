@@ -95,7 +95,7 @@ export const start = new ValidatedMethod({
     } else {
       Groups.update(groupId, {
         $set: { players: group.players.map(player => ({ id: player.id, role: 'Undecided' })), messages: [] },
-        $unset: { guessMerlin: true }
+        $unset: { guessMerlin: 1 }
       });
     }
   },
@@ -132,7 +132,7 @@ export const approve = new ValidatedMethod({
       $set: { [`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.approvals.${group.players.map(p => p.id).indexOf(this.userId)}`]: approval }
     });
     group = Groups.findOne(groupId); // Update local variable
-    if (group.isDenied()) {
+    if (group.getLastTeamsCount() < Groups.MISSION_TEAMS_COUNT && group.isDenied()) { // Hammer
       group.startSelectingMembers();
     } else if (!group.isWaitingForApproval()) {
       group.startWaitingForVote();

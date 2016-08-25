@@ -223,12 +223,18 @@ export default class Rules extends React.Component {
             <tr>
               <td style={symbolColStyle}><img src="/images/tokens/leader.png" className="img-responsive"/></td>
               <td>Leader.</td>
+              <td style={symbolColStyle}><img src="/images/tokens/playing.png" className="img-responsive"/></td>
+              <td>Mission is playing.</td>
+            </tr>
+            <tr>
+              <td style={symbolColStyle}><img src="/images/tokens/hammer.png" className="img-responsive"/></td>
+              <td>Hammer.</td>
               <td style={symbolColStyle}><img src="/images/tokens/member.png" className="img-responsive"/></td>
               <td>Team member.</td>
             </tr>
             <tr>
               <td style={symbolColStyle}><img src="/images/tokens/undecided.png" className="img-responsive"/></td>
-              <td>Undecided.</td>
+              <td>Waiting for approval.</td>
               <td style={symbolColStyle}><img src="/images/tokens/waiting.png" className="img-responsive"/></td>
               <td>Waiting for vote.</td>
             </tr>
@@ -243,12 +249,6 @@ export default class Rules extends React.Component {
               <td>Voted success.</td>
               <td style={symbolColStyle}><img src="/images/tokens/voted-fail.png" className="img-responsive"/></td>
               <td>Voted fail.</td>
-            </tr>
-            <tr>
-              <td style={symbolColStyle}><img src="/images/tokens/playing.png" className="img-responsive"/></td>
-              <td>Mission is playing.</td>
-              <td style={symbolColStyle}><img src="/images/tokens/mission-denied.png" className="img-responsive"/></td>
-              <td>Mission is denied.</td>
             </tr>
             <tr>
               <td style={symbolColStyle}><img src="/images/tokens/mission-success.png" className="img-responsive"/></td>

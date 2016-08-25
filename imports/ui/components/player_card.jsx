@@ -9,11 +9,13 @@ export default class PlayerCard extends React.Component {
     const { isSelectable, isMember, isGuessed, group, player } = this.props;
     const playersCount = group.players.length >= Groups.MIN_PLAYERS_COUNT ? group.players.length : Groups.MIN_PLAYERS_COUNT;
     const isLeader = group.hasLeader(player._id);
+    const isHammer = group.hasHammer(player._id);
     const { role, side, status } = group.findInformation(Meteor.userId(), player._id);
     return (
       <div onClick={this.props.onClick} className={`avalon-col-card-player-${playersCount} profile_details`}>
         <button className={`well profile_view avalon-card${isSelectable == null ? '-disable' : isSelectable ? '' : '-unselectable'} ${side != null ? `avalon-${side ? 'good' : 'evil'}` : ''}`}>
           {isLeader ? <img data-container="body" data-toggle="tooltip" title="Leader" src="/images/tokens/leader.png" className="img-responsive avalon-card-mark-top"/> : null}
+          {isHammer ? <img data-container="body" data-toggle="tooltip" data-html={true} title="Hammer<br/>(Mission team which is selected<br/>by this leader is always approved)" src="/images/tokens/hammer.png" className="img-responsive avalon-card-mark-left"/> : null}
           {isMember ? <img data-container="body" data-toggle="tooltip" title="Member" src="/images/tokens/member.png" className="img-responsive avalon-card-mark-right"/> : null}
           {isGuessed ? <img data-container="body" data-toggle="tooltip" title="Guessed as Merlin" src="/images/tokens/guessed.png" className="img-responsive avalon-card-mark-right"/> : null}
           <p><b>{Meteor.userId() == player._id ? <i>Me</i> : player.username}</b></p>

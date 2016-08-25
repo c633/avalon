@@ -17,27 +17,5 @@ Meteor.publish('groups.findAll', (name, page) => {
 
 Meteor.publish('groups.findOne', function (id) { // Do not use arrow function here
   check(id, String);
-  const transform = group => {
-    const index = group.players.findIndex(p => p.id == this.userId);
-    const role = group.players[index] && group.players[index].role || 'Unknown';
-    group.players.forEach((p, i) => {
-      if (i != index && p.role != 'Undecided') {
-        p.role = Groups.ROLES[role] && Groups.ROLES[role].visions && Groups.ROLES[role].visions[p.role] || 'Unknown';
-      }
-    });
-    return group;
-  };
-  const groups = Groups.find({ _id: id }, { fields: Groups.publicFieldsWhenFindOne }).observe({
-    added: group => {
-      this.added('Groups', group._id, transform(group));
-    },
-    changed: (newGroup, oldGroup) => {
-      this.changed('Groups', oldGroup._id, transform(newGroup));
-    },
-    removed: group => {
-      this.removed('Groups', group._id);
-    }
-  });
-  this.onStop(() => { groups.stop(); });
-  return this.ready();
+  return Groups.find({ _id: id }, { fields: Groups.publicFieldsWhenFindOne });
 });

@@ -28,6 +28,7 @@ export default class SummariesContent extends React.Component {
                           <tr>
                             <th>#</th>
                             <th>Team members</th>
+                            <th>Deniers</th>
                             <th>Result</th>
                           </tr>
                         </thead>
@@ -37,7 +38,8 @@ export default class SummariesContent extends React.Component {
                               <tr key={j}>
                                 <th scope="row">{j + 1}</th>
                                 <td>{t.memberIndices.map(i => <div key={i}>{players[i].user.username}</div>)}</td>
-                                <td>{t.result === undefined ? '' : t.result == null ? <div>Denied by<br/>{t.denierIndices.length} player(s)</div> : t.result ? 'Success' : <div>Fail with <br/>{t.failVotesCount} fail vote(s)</div>}</td>
+                                <td>{t.denierIndices.map(i => <div key={i}>{players[i].user.username}</div>)}</td>
+                                <td>{t.result === undefined ? '' : t.result == null ? <div>Denied by<br/>{t.denierIndices.length} player(s)</div> : t.result ? <div><b className="avalon-good">Success</b> with <br/>{t.failVotesCount} fail vote(s)</div> : <div><b className="avalon-evil">Fail</b> with <br/>{t.failVotesCount} fail vote(s)</div>}</td>
                               </tr>
                             )
                           }
