@@ -2,17 +2,13 @@
  * Override
  */
 
-footer {
-  margin-left: 0px;
-}
-
 ul.bar_tabs {
   background: transparent;
 }
 
 body {
   color: #4B5F71;
-  background: #F7F7F7;
+  background-color: #F5F5F5;
 }
 
 .container {
@@ -49,30 +45,8 @@ ul.top_profiles li:nth-child(odd) {
   border: none;
 }
 
-.accordion .panel,
-.accordion .panel:hover{
-  margin-bottom: 15px;
-  background: rgba(255, 255, 255, 0.8);
-}
-
-.table-striped > tbody > tr:nth-of-type(odd) {
-  background-color: #F0F0F0;
-}
-
 .navbar-nav > li > a {
-  padding: 13px 10px;
-}
-
-.top_nav .nav > li > a:focus,
-.top_nav .nav > li > a:hover,
-.top_nav .nav .open > a,
-.top_nav .nav .open > a:focus,
-.top_nav .nav .open > a:hover {
-  background: #B9B9B9;
-}
-
-h3 small {
-  color: #A0A0A0;
+  padding: 5px 10px;
 }
 
 .progress.progress_sm {
@@ -94,6 +68,10 @@ ul.bar_tabs > li a,
   padding: 10px 8px;
 }
 
+.x_panel {
+  background-color: #FBFBFB;
+}
+
 .top_nav .navbar-right {
   width: initial;
 }
@@ -102,14 +80,12 @@ ul.bar_tabs > li a,
   overflow: inherit;
 }
 
-@media (max-width: 479px) {
-  ul.bar_tabs > li.active {
-    border-right: none;
-  }
+ul.bar_tabs > li.active {
+  border-right: none;
+}
 
-  ul.bar_tabs > li {
-    margin-left: 0px;
-  }
+ul.bar_tabs > li {
+  margin-left: 0px;
 }
 
 .login_wrapper {
@@ -118,6 +94,11 @@ ul.bar_tabs > li a,
 
 .login_content {
   min-width: 225px;
+}
+
+.toggle {
+  padding-top: 5px;
+  width: auto;
 }
 
 /*
@@ -133,7 +114,7 @@ ul.bar_tabs > li a,
 }
 
 .media-body {
-  background: #F8F8F8;
+  background: #EFEFEF;
   border-radius: 10px;
   padding: 0px 10px;
 }
@@ -151,28 +132,6 @@ ul.top_profiles {
   padding: 5px;
 }
 
-.nav_menu,
-.x_panel,
-.profile_details .profile_view,
-footer {
-  background-color: rgba(255, 255, 255, 0.75);
-}
-
-.x_panel {
-  border-radius: 10px;
-}
-
-.login_form {
-  border-radius: 10px;
-  background-color: rgba(255,255,255,0.9);
-  position: inherit;
-  padding: 10px 20px;
-}
-
-.page-title .title_left h3 {
-  color: #FAFAFA;
-}
-
 .profile_img {
   text-align: center;
 }
@@ -181,13 +140,14 @@ footer {
   cursor: auto;
 }
 
+.toggle h5 {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 /*
  * Custom
  */
-
-#app {
-  background-image: url("/images/background.jpg");
-}
 
 .avalon-logo {
   height: 40px;
@@ -446,15 +406,6 @@ button.avalon-card-disable {
   padding-top: 100%;
   display: block;
   content: '';
-}
-
-.avalon-token span {
-  left: 0;
-  color: #F0F0F0;
-  position: absolute;
-  width: 100%;
-  font-size: xx-large;
-  text-align: center;
 }
 
 /* User page */

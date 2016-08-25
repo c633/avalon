@@ -36,9 +36,10 @@ export default class PlayersContent extends React.Component {
                     const result = summary && (summary.length > 0 || null) && summary[summary.length - 1].result;
                     const membersCount = Groups.MISSIONS_MEMBERS_COUNT[group.players.length][index];
                     const needMoreFailVotes = group.findRequiredFailVotesCount(index) > 1;
-                    const title = `<b>Mission ${index + 1}</b><br/>${index > summaries.length - 1 ? `Need <b><i>${membersCount}</i></b> team members` : result === undefined ? `<i style="color: #F39C12;">PLAYING</i><br/>Need <b><i>${membersCount}</i></b> team members` : result == null ? 'Denied' : result ? 'Success' : 'Fail'}` + (needMoreFailVotes ? '<br/>(Require <i style="color: #E74C3C;"><b>2</b> fail votes</i> for the mission to fail)' : '');
+                    const playing = index == summaries.length - 1;
+                    const title = `<b>Mission ${index + 1}</b><br/>${!playing ? `Need <b><i>${membersCount}</i></b> team members` : result === undefined ? `<i style="color: #F39C12;">PLAYING</i><br/>Need <b><i>${membersCount}</i></b> team members` : result == null ? 'Denied' : result ? 'Success' : 'Fail'}` + (needMoreFailVotes ? '<br/>(Require <i style="color: #E74C3C;"><b>2</b> fail votes</i> for the mission to fail)' : '');
                     return (
-                      <div key={index} className="avalon-token" style={{ backgroundImage: `url("/images/tokens/mission-${result === undefined ? `members-${membersCount}` : result == null ? 'denied' : result ? 'success' : 'fail'}.png")` }} data-container="body" data-toggle="tooltip" data-html={true} title={title}>
+                      <div key={index} className="avalon-token" style={{ backgroundImage: `url("/images/tokens/mission-${result === undefined ? `members-${membersCount}` : result == null ? 'denied' : result ? 'success' : 'fail'}.png")`, '-webkit-filter': playing ? 'grayscale(10%)' : 'grayscale(100%)' }} data-container="body" data-toggle="tooltip" data-html={true} title={title}>
                         {index == summaries.length - 1 ? <img className="img-responsive avalon-token-mark-top" src="/images/tokens/playing.png"/> : null}
                         {needMoreFailVotes ? <img className="img-responsive avalon-token-mark-bottom" src="/images/tokens/more-fail-votes.png"/> : null}
                       </div>

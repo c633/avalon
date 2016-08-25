@@ -24,7 +24,6 @@ Meteor.publish('groups.findOne', function (id) { // Do not use arrow function he
       if (i != index && p.role != 'Undecided') {
         p.role = Groups.ROLES[role] && Groups.ROLES[role].visions && Groups.ROLES[role].visions[p.role] || 'Unknown';
       }
-      return p;
     });
     return group;
   };

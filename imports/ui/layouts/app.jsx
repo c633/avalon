@@ -1,6 +1,5 @@
 import React from 'react';
 import Navbar from './navbar.jsx';
-import Footer from './footer.jsx';
 
 export default class App extends React.Component {
 
@@ -15,7 +14,6 @@ export default class App extends React.Component {
         <div className="container">
           {children}
         </div>
-        <Footer/>
       </div>
     ) : null;
   }

@@ -15,7 +15,7 @@ export default class Navbar extends React.Component {
         <div className="nav_menu">
           <nav className="" role="navigation">
             <div className="nav toggle">
-              <a href="/"><img src="/images/avatar.png" className="avalon-logo" alt="Logo"/></a>
+              <h5><a href="/"><i className="fa fa-home"></i> Home</a></h5>
             </div>
             <ul className="nav navbar-nav navbar-right">
               {

@@ -16,7 +16,7 @@ export default class PlayerCard extends React.Component {
           {isLeader ? <img data-container="body" data-toggle="tooltip" title="Leader" src="/images/tokens/leader.png" className="img-responsive avalon-card-mark-top"/> : null}
           {isMember ? <img data-container="body" data-toggle="tooltip" title="Member" src="/images/tokens/member.png" className="img-responsive avalon-card-mark-right"/> : null}
           {isGuessed ? <img data-container="body" data-toggle="tooltip" title="Guessed as Merlin" src="/images/tokens/guessed.png" className="img-responsive avalon-card-mark-right"/> : null}
-          <p><b>{player.username}{Meteor.userId() == player._id ? ' (Me)' : ''}</b></p>
+          <p><b>{Meteor.userId() == player._id ? <i>Me</i> : player.username}</b></p>
           <img src={player.getAvatarSrc()} className="img-responsive avalon-avatar avalon-card-player-avatar"/>
           <div className="bottom text-center">
             <div className="emphasis">

@@ -11,7 +11,7 @@ export default class SummariesContent extends React.Component {
     const players = group.getPlayers();
     return (
       <div className="avalon-summaries">
-        <div className="accordion" role="tablist" aria-multiselectable="true">
+        <div role="tablist" aria-multiselectable="true">
           {
             group.getSummaries().map((m, i) => {
               const lastResult = (m.length > 0 || null) && m[m.length - 1].result;
@@ -21,7 +21,7 @@ export default class SummariesContent extends React.Component {
                     <span className={`panel-title${lastResult === undefined ? '' : ` avalon-${lastResult ? 'good' : 'evil'}`}`}><b>Mission {i + 1}</b> ({lastResult === undefined ? 'Playing' : lastResult == null ? 'Denied' : lastResult ? 'Success' : 'Fail'})</span>
                     <img src={`/images/tokens/${lastResult === undefined ? 'playing' : `mission-${lastResult == null ? 'denied' : lastResult ? 'success' : 'fail'}`}.png`} className="pull-right avalon-summary-result"/>
                   </div>
-                  <div className="panel-collapse collapse in" role="tabpanel">
+                  <div role="tabpanel">
                     <div className="panel-body">
                       <table className="table table-striped">
                         <thead>
