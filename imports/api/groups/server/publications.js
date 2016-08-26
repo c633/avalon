@@ -12,10 +12,10 @@ Meteor.publish('groups.findAll', (name, page) => {
     const lastGroup = Groups.find(selector, { sort: { createdAt: -1 }, limit: skippedGroupsCount }).fetch().pop();
     selector.createdAt = { $lt: lastGroup.createdAt };
   }
-  return Groups.find(selector, { fields: Groups.publicFieldsWhenFindAll, sort: { createdAt: -1 }, limit: GROUPS_PER_PAGE });
+  return Groups.find(selector, { fields: Groups.publicFields.findAll, sort: { createdAt: -1 }, limit: GROUPS_PER_PAGE });
 });
 
-Meteor.publish('groups.findOne', function (id) { // Do not use arrow function here
+Meteor.publish('groups.findOne', id => {
   check(id, String);
-  return Groups.find({ _id: id }, { fields: Groups.publicFieldsWhenFindOne });
+  return Groups.find({ _id: id }, { fields: Groups.publicFields.findOne });
 });

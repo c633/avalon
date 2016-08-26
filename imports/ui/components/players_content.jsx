@@ -72,14 +72,14 @@ export default class PlayersContent extends React.Component {
         <div className="form-group">
           {isSelectingMembers ? <button className="btn btn-info" onClick={this.selectMembers}>Select members</button> : null}
           {
-            group.isWaitingForApproval() && group.hasPlayer(Meteor.userId()) ?
+            group.isWaitingForApproval() && group.hasPlayer(Meteor.userId()) && !group.checkPlayerHasApproved(Meteor.userId()) ?
               <span>
                 <button className="btn btn-success" onClick={() => this.approve(true)}>Approve</button>
                 <button className="btn btn-danger" onClick={() => this.approve(false)}>Deny</button>
               </span> : null
           }
           {
-            group.isWaitingForVote() && group.hasMember(Meteor.userId()) ?
+            group.isWaitingForVote() && group.hasMember(Meteor.userId()) && !group.checkMemberHasVoted(Meteor.userId()) ?
               <span>
                 <button className="btn btn-success" onClick={() => this.vote(true)}>Vote Success</button>
                 {

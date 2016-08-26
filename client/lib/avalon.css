@@ -101,6 +101,11 @@ ul.bar_tabs > li {
   width: auto;
 }
 
+.btn,
+.btn:hover {
+  border-color: transparent;
+}
+
 /*
  * Modified
  */

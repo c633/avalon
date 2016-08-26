@@ -1,8 +1,9 @@
 import React from 'react';
+import { Groups } from '../../api/groups/groups.jsx';
 import GroupRow from './group_row.jsx';
 import { MediumAndSmallDevice } from '../layouts/devices.jsx';
 
-export default class GroupTable extends React.Component {
+export default class GroupsTable extends React.Component {
 
   // REGION: Component Specifications
 
@@ -20,7 +21,7 @@ export default class GroupTable extends React.Component {
             </tr>
           </thead>
           <tbody>
-            {groups.map(g => <GroupRow group={g} key={g._id}/>)}
+            {groups.map(g => <GroupRow key={g._id} group={g} joinedOtherGroup={Groups.find({ 'players.id': Meteor.userId() }).count() > 0}/>)}
           </tbody>
         </table>
       </div>
@@ -28,6 +29,6 @@ export default class GroupTable extends React.Component {
   }
 }
 
-GroupTable.propTypes = {
+GroupsTable.propTypes = {
   groups: React.PropTypes.array,
 };

@@ -88,13 +88,13 @@ export const start = new ValidatedMethod({
       const minions = Array.from(new Array(evilPlayersCount - roles.filter(r => !Groups.ROLES[r].side).length)).map(() => 'Minion');
       _.shuffle(roles.concat(servants, minions)).forEach((r, i) => players[i].role = r);
       Groups.update(groupId, {
-        $set: { players: players }
+        $set: { players: players, firstLeaderIndex: Math.floor(Math.random() * playersCount) }
       });
       group = Groups.findOne(groupId); // Update local variable
       group.startNewMission();
     } else {
       Groups.update(groupId, {
-        $set: { players: group.players.map(player => ({ id: player.id, role: 'Undecided' })), messages: [] },
+        $set: { players: group.players.map(player => ({ id: player.id, role: 'Undecided' })), firstLeaderIndex: 0, messages: [] },
         $unset: { guessMerlin: 1 }
       });
     }
@@ -149,7 +149,7 @@ export const vote = new ValidatedMethod({
   run({ groupId, success }) {
     let group = Groups.findOne(groupId);
     Groups.update(groupId, {
-      $set: { [`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.successVotes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(this.userId))}`]: success }
+      $set: { [`missions.${group.missions.length - 1}.votes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(this.userId))}`]: success }
     });
     group = Groups.findOne(groupId); // Update local variable
     if (!group.isWaitingForVote()) {

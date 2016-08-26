@@ -8,7 +8,7 @@ export default class SummariesContent extends React.Component {
 
   render() {
     const { group } = this.props;
-    const players = group.getPlayers();
+    const players = group.getPlayers().map(p => p.user);
     return (
       <div className="avalon-summaries">
         <div role="tablist" aria-multiselectable="true">
@@ -27,6 +27,7 @@ export default class SummariesContent extends React.Component {
                         <thead>
                           <tr>
                             <th>#</th>
+                            <th>Leader</th>
                             <th>Team members</th>
                             <th>Deniers</th>
                             <th>Result</th>
@@ -37,8 +38,9 @@ export default class SummariesContent extends React.Component {
                             m.map((t, j) =>
                               <tr key={j}>
                                 <th scope="row">{j + 1}</th>
-                                <td>{t.memberIndices.map(i => <div key={i}>{players[i].user.username}</div>)}</td>
-                                <td>{t.denierIndices.map(i => <div key={i}>{players[i].user.username}</div>)}</td>
+                                <td>{players[t.leaderIndex].username}</td>
+                                <td>{t.memberIndices.map(i => <div key={i}>{players[i].username}</div>)}</td>
+                                <td>{t.denierIndices.map(i => <div key={i}>{players[i].username}</div>)}</td>
                                 <td>{t.result === undefined ? '' : t.result == null ? <div>Denied by<br/>{t.denierIndices.length} player(s)</div> : t.result ? <div><b className="avalon-good">Success</b> with <br/>{t.failVotesCount} fail vote(s)</div> : <div><b className="avalon-evil">Fail</b> with <br/>{t.failVotesCount} fail vote(s)</div>}</td>
                               </tr>
                             )

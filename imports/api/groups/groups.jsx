@@ -50,11 +50,11 @@ TeamsSchema = new SimpleSchema({
   // Index of leader's id which is included in `players.id`, corresponds to the index of this team in `missions.teams`
   memberIndices: { type: [Number], defaultValue: [] }, // Indices of players who were selected to be sent out on the mission, correspond to `players.id`
   approvals: { type: [Boolean], defaultValue: [] }, // Indicate players whether to approve the mission team make-up or not, with indices correspond to `players.id`
-  successVotes: { type: [Boolean], defaultValue: [] }, // Indicate members whether to vote for the mission to success or not, with indices correspond to `missions.teams.memberIndices`
 });
 
 MissionsSchema = new SimpleSchema({
   teams: { type: [TeamsSchema], defaultValue: [] },
+  votes: { type: [Boolean], defaultValue: [] }, // Indicate members whether to vote for the mission to success or not, with indices correspond to `missions.teams.memberIndices`
 });
 
 MessagesSchema = new SimpleSchema({
@@ -67,6 +67,7 @@ Groups.schema = new SimpleSchema({
   ownerId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Owner's id
   name: { type: String },
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
+  firstLeaderIndex: { type: Number, defaultValue: 0 },
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
   guessMerlin: { type: Boolean, optional: true }, // Indicate whether Assassin correctly guesses Merlin's identity or not
   messages: { type: [MessagesSchema], defaultValue: [] },
@@ -75,24 +76,22 @@ Groups.schema = new SimpleSchema({
 
 Groups.attachSchema(Groups.schema);
 
-// This represents the keys from Groups objects that should be published
-// to the client. If we add secret properties to Group objects, don't list
-// them here to keep them private to the server.
-Groups.publicFieldsWhenFindAll = {
-  ownerId: 1,
-  name: 1,
-  'players.id': 1,
-  'missions.length': 1,
-};
-
-// TODO: Remove secret properties to keep them private
-Groups.publicFieldsWhenFindOne = {
-  ownerId: 1,
-  name: 1,
-  players: 1,
-  missions: 1,
-  guessMerlin: 1,
-  messages: 1,
+Groups.publicFields = {
+  findAll: {
+    ownerId: 1,
+    name: 1,
+    'players.id': 1,
+    'missions.length': 1,
+  },
+  findOne: { // TODO: Remove secret properties to keep them private
+    ownerId: 1,
+    name: 1,
+    players: 1,
+    firstLeaderIndex: 1,
+    missions: 1,
+    guessMerlin: 1,
+    messages: 1,
+  }
 };
 
 Groups.helpers({
@@ -118,35 +117,41 @@ Groups.helpers({
   isPlaying() {
     return this.missions.length != 0;
   },
+  getLastMission() { // Private use only
+    return this.missions[this.missions.length - 1];
+  },
   getLastTeam() { // Force return `null` if missions list or teams list is empty (instead of `undefined`)
-    const lastMission = this.missions[this.missions.length - 1];
+    const lastMission = this.getLastMission();
     return (lastMission || null) && lastMission.teams && lastMission.teams[lastMission.teams.length - 1] || null;
   },
   getTeamsCount() {
     return this.missions.reduce((c, m) => c + m.teams.length, 0);
   },
   getLastTeamsCount() {
-    return this.missions[this.missions.length - 1].teams.length;
+    return this.getLastMission().teams.length;
   },
   findRequiredFailVotesCount(missionIndex) {
     return missionIndex == 3 && this.players.length >= 7 ? 2 : 1;
   },
   getSummaries() {
-    return this.missions.map((m, i) =>
-      m.teams.map((t, j) => {
-        const summary = { memberIndices: t.memberIndices, denierIndices: [], failVotesCount: null, result: undefined };
+    let lastMissionsTeamsCount = 0;
+    return this.missions.map((m, i) => {
+      const mission = m.teams.map((t, j) => {
+        const team = { leaderIndex: (this.firstLeaderIndex + lastMissionsTeamsCount + j) % this.players.length, memberIndices: t.memberIndices, denierIndices: [], failVotesCount: null, result: undefined };
         if (t.memberIndices.length != 0 && t.approvals.indexOf(null) == -1) {
-          summary.denierIndices = t.approvals.map((a, i) => a ? -1 : i).filter(i => i >= 0);
+          team.denierIndices = t.approvals.map((a, i) => a ? -1 : i).filter(i => i >= 0);
           if (j < Groups.MISSION_TEAMS_COUNT - 1 && t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) { // Denied, Hammer
-            summary.result = null;
-          } else if (t.successVotes.indexOf(null) == -1) {
-            summary.failVotesCount = t.successVotes.filter(a => !a).length;
-            summary.result = summary.failVotesCount < this.findRequiredFailVotesCount(i) ? true : false;
+            team.result = null;
+          } else if (m.votes.indexOf(null) == -1) {
+            team.failVotesCount = m.votes.filter(a => !a).length;
+            team.result = team.failVotesCount < this.findRequiredFailVotesCount(i) ? true : false;
           }
         }
-        return summary;
-      })
-    );
+        return team;
+      });
+      lastMissionsTeamsCount += m.teams.length;
+      return mission;
+    });
   },
   startNewMission() {
     const summaryResults = this.getSummaries().map(m => m[m.length - 1].result);
@@ -157,7 +162,7 @@ Groups.helpers({
       this.startGuessingMerlin();
       return;
     }
-    const newMission = { teams: [] };
+    const newMission = { teams: [], votes: [] };
     Groups.update(this._id, {
       $push: { missions: newMission }
     });
@@ -172,10 +177,10 @@ Groups.helpers({
     // const memberIndices = _.shuffle(Array.from(new Array(this.players.length), (_, i) => i)).slice(0, Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]); // TEST
     const memberIndices = [];
     Groups.update(this._id, {
-      $push: { [`missions.${this.missions.length - 1}.teams`]: { memberIndices: memberIndices, approvals: [], successVotes: [] } }
+      $push: { [`missions.${this.missions.length - 1}.teams`]: { memberIndices: memberIndices, approvals: [] } }
     });
     // FIXME: Remove redundancy (@ref 'methods' `selectedMembers`)
-    this.missions[this.missions.length - 1].teams.push({ memberIndices: memberIndices, approvals: [], successVotes: [] }); // Update local variable
+    this.getLastMission().teams.push({ memberIndices: memberIndices, approvals: [] }); // Update local variable
     if (!this.isSelectingMembers()) {
       this.startWaitingForApproval();
     }
@@ -195,23 +200,29 @@ Groups.helpers({
     }
   },
   startWaitingForVote() {
-    const lastMission = this.missions[this.missions.length - 1];
-    // const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => Groups.ROLES[this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role].side ? true : Math.random() > 0.3 ? true : false); // TEST
-    const successVotes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => Groups.ROLES[this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role].side ? null : null);
+    const lastMission = this.getLastMission();
+    // const votes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => Groups.ROLES[this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role].side ? true : Math.random() > 0.3 ? true : false); // TEST
+    const votes = Array.from(new Array(Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1]), (_, i) => Groups.ROLES[this.players[lastMission.teams[lastMission.teams.length - 1].memberIndices[i]].role].side ? null : null);
     Groups.update(this._id, {
-      $set: { [`missions.${this.missions.length - 1}.teams.${lastMission.teams.length - 1}.successVotes`]: successVotes }
+      $set: { [`missions.${this.missions.length - 1}.votes`]: votes }
     });
     // FIXME: Remove redundancy (@ref 'methods' `vote`)
-    this.getLastTeam().successVotes = successVotes; // Update local variable
+    this.getLastMission().votes = votes; // Update local variable
     if (!this.isWaitingForVote()) {
       this.startNewMission();
     }
   },
   startGuessingMerlin() {
+    // const guessMerlin = Math.random() > 0.5 ? true : false; // TEST
+    const guessMerlin = null;
     Groups.update(this._id, {
-      $set: { guessMerlin: null }
-      // $set: { guessMerlin: Math.random() > 0.5 ? true : false } // TEST
+      $set: { guessMerlin: guessMerlin }
     });
+    // FIXME: Remove redundancy (@ref 'methods' `guess`)
+    this.guessMerlin = guessMerlin; //Update local variable
+    if (this.guessMerlin != null) {
+      this.finish();
+    }
   },
   finish() {
     const playerActivities = [];
@@ -239,13 +250,13 @@ Groups.helpers({
     }
   },
   getLeader() {
-    return this.missions.length > 0 ? Meteor.users.findOne(this.players[(this.getTeamsCount() - 1) % this.players.length].id) : null;
+    return this.missions.length > 0 ? Meteor.users.findOne(this.players[(this.firstLeaderIndex + this.getTeamsCount() - 1) % this.players.length].id) : null;
   },
   hasLeader(userId) {
-    return this.missions.length > 0 ? this.players[(this.getTeamsCount() - 1) % this.players.length].id == userId : false;
+    return this.missions.length > 0 ? this.players[(this.firstLeaderIndex + this.getTeamsCount() - 1) % this.players.length].id == userId : false;
   },
   hasHammer(userId) {
-    return this.missions.length > 0 ? this.players[(this.getTeamsCount() - this.getLastTeamsCount() + Groups.MISSION_TEAMS_COUNT - 1) % this.players.length].id == userId : false;
+    return this.missions.length > 0 ? this.players[(this.firstLeaderIndex + this.getTeamsCount() - this.getLastTeamsCount() + Groups.MISSION_TEAMS_COUNT - 1) % this.players.length].id == userId : false;
   },
   hasMember(userId) {
     return this.getLastTeam() != null && this.getLastTeam().memberIndices.find(i => this.players[i].id == userId) != undefined;
@@ -266,10 +277,16 @@ Groups.helpers({
     return this.getLastTeam() != null && this.getLastTeam().approvals.indexOf(null) == -1 && this.getLastTeam().approvals.filter(a => !a).length >= this.getLastTeam().approvals.filter(a => a).length;
   },
   isWaitingForVote() {
-    return this.getLastTeam() != null && this.getLastTeam().successVotes.indexOf(null) != -1;
+    return this.getLastMission() != null && this.getLastMission().votes.indexOf(null) != -1;
   },
   isGuessingMerlin() {
     return this.guessMerlin === null;
+  },
+  checkPlayerHasApproved(userId) {
+    return this.getLastTeam() != null && this.getLastTeam().approvals[this.players.map(p => p.id).indexOf(userId)] != null;
+  },
+  checkMemberHasVoted(userId) {
+    return this.getLastMission() != null && this.getLastMission().votes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))] != null;
   },
   getSituation() {
     const situation = { status: '', slot: undefined, result: undefined };
@@ -312,7 +329,7 @@ Groups.helpers({
   },
   findInformation(userId, playerId) {
     const indices = this.players.map(p => p.id);
-    const userRole = this.players[indices.indexOf(userId)].role;
+    const userRole = this.players[indices.indexOf(userId)] && this.players[indices.indexOf(userId)].role || 'Undecided';
     const playerIndex = indices.indexOf(playerId);
     const playerRole = this.players[playerIndex].role;
     const otherPlayer = userId != playerId;
@@ -321,10 +338,10 @@ Groups.helpers({
     let status = '';
     if (this.isWaitingForApproval()) {
       const approval = this.getLastTeam().approvals[playerIndex];
-      status = approval == null ? 'Undecided' : approval ? 'Approved' : 'Denied';
+      status = approval === undefined ? '' : otherPlayer || approval == null ? 'Waiting' : approval ? 'Approved' : 'Denied';
     }
     if (this.isWaitingForVote()) {
-      const vote = this.getLastTeam().successVotes[this.getLastTeam().memberIndices.indexOf(playerIndex)];
+      const vote = this.getLastMission().votes[this.getLastTeam().memberIndices.indexOf(playerIndex)];
       status = vote === undefined ? '' : otherPlayer || vote == null ? 'Waiting' : vote ? 'Voted Success' : 'Voted Fail';
     }
     return { role: role, side: side, status: status };
@@ -354,7 +371,7 @@ Groups.helpers({
           <b>{approval == null ? '' : `(You ${approval ? 'approved' : 'denied'})`}</b>
         </p>;
     } else if (this.isWaitingForVote() && this.hasMember(userId)) {
-      const vote = this.getLastTeam().successVotes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))];
+      const vote = this.getLastMission().votes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))];
       suggestion =
         <p>
           Press buttons to vote for the mission success or fail

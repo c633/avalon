@@ -30,7 +30,7 @@ export default class Signup extends React.Component {
                 <input type="password" className="form-control" placeholder="Password" ref="password" name="password" required=""/>
               </div>
               <div>
-                <button type="submit" className="btn btn-default submit">Signup</button>
+                <button type="submit" className="btn btn-dark submit">Signup</button>
               </div>
               <div className="clearfix"></div>
               <div className="separator">

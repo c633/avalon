@@ -1,5 +1,5 @@
 import React from 'react';
-import GroupTable from '../components/group_table.jsx';
+import GroupsTable from '../components/groups_table.jsx';
 import { insert } from '../../api/groups/methods.js';
 
 export default class Lobby extends React.Component {
@@ -39,7 +39,7 @@ export default class Lobby extends React.Component {
         <div className="clearfix"></div>
         <div className="x_panel">
           {formCreateGroup}
-          <GroupTable groups={groups}/>
+          <GroupsTable groups={groups}/>
         </div>
       </div>
     ) : null;

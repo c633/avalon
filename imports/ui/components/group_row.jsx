@@ -1,5 +1,4 @@
 import React from 'react';
-import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { join, leave } from '../../api/groups/methods.js';
 import { MediumAndSmallDevice, TinyDevice } from '../layouts/devices.jsx';
 
@@ -13,9 +12,9 @@ export default class GroupRow extends React.Component {
   // REGION: Component Specifications
 
   render() {
-    const { group } = this.props;
+    const { group, joinedOtherGroup } = this.props;
     const situation = group.getSituation();
-    const joined = group.hasPlayer(Meteor.userId());
+    const joinedThisGroup = group.hasPlayer(Meteor.userId());
     const isPlaying = group.isPlaying();
     return (
       <tr>
@@ -61,9 +60,9 @@ export default class GroupRow extends React.Component {
         <td>
           <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark"><i className="fa fa-group"></i> Go to</a>
           {
-            !!Meteor.userId() && (joined || situation.slot != false) && !isPlaying ?
-              !joined && !isPlaying ?
-                <a className="btn btn-sm btn-success" onClick={this.joinGroup}><i className="fa fa-sign-in"></i> Join</a> :
+            !!Meteor.userId() && (joinedThisGroup || situation.slot != false) && !isPlaying ?
+              !joinedThisGroup && !isPlaying ?
+                !joinedOtherGroup ? <a className="btn btn-sm btn-success" onClick={this.joinGroup}><i className="fa fa-sign-in"></i> Join</a> : null :
                 <a className="btn btn-sm btn-danger" onClick={this.leaveGroup}><i className="fa fa-sign-out"></i> Leave</a> : null
           }
         </td>
@@ -106,6 +105,7 @@ export default class GroupRow extends React.Component {
 
 GroupRow.propTypes = {
   group: React.PropTypes.object,
+  joinedOtherGroup: React.PropTypes.bool,
 };
 
 GroupRow.contextTypes = {
