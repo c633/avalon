@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import { Groups } from './groups.js';
+import { Groups } from './groups.jsx';
 import { _ } from 'meteor/underscore';
 
 export const insert = new ValidatedMethod({
@@ -13,7 +13,7 @@ export const insert = new ValidatedMethod({
     const group = {
       ownerId: this.userId,
       name: name,
-      guessMerlin: null,
+      guessMerlin: undefined,
     };
     return Groups.insert(group);
   },
@@ -33,7 +33,7 @@ export const join = new ValidatedMethod({
       throw new Meteor.Error('groups.join.alreadyJoined', 'Already joined this group.');
     }
     Groups.update(groupId, {
-      $push: { players: { id: this.userId, role: 0 } },
+      $push: { players: { id: this.userId, role: 'Undecided' } },
     });
   },
 });
@@ -51,7 +51,7 @@ export const leave = new ValidatedMethod({
     if (!group.hasPlayer(this.userId)) {
       throw new Meteor.Error('groups.leave.alreadyLeaved', 'Already leaved this group.');
     }
-    if (group.getPlayers().length == 1) { // The last player wants to leave this group
+    if (group.players.length == 1) { // The last player wants to leave this group
       Groups.remove(groupId);
     } else {
       Groups.update(groupId, {
@@ -66,9 +66,10 @@ export const start = new ValidatedMethod({
   validate: new SimpleSchema({
     groupId: { type: String },
     reset: { type: Boolean },
+    additionalRoles: { type: [String] },
   }).validator(),
-  run({ groupId, reset }) {
-    const group = Groups.findOne(groupId);
+  run({ groupId, additionalRoles, reset }) {
+    let group = Groups.findOne(groupId);
     if (!group.hasOwner(this.userId)) {
       throw new Meteor.Error('groups.start.accessDenied', 'Don\'t have permission to start playing.');
     }
@@ -76,39 +77,27 @@ export const start = new ValidatedMethod({
       $set: { missions: [] },
     });
     if (!reset) {
-      group.startNewMission();
-      const playersCount = group.players.length;
+      if (!group.checkSelectedAdditionalRolesValidation(additionalRoles)) {
+        throw new Meteor.Error('groups.start.invalidAdditionalRoles', 'Invalid selected additional roles.');
+      }
+      const players = group.players;
+      const playersCount = players.length;
       const evilPlayersCount = group.getEvilPlayersCount();
-      let roles = group.additionalRoles;
-      roles = roles.concat([Groups.Roles.MERLIN, Groups.Roles.ASSASSIN]); // Required players
-      const servants = Array.from(Array(playersCount - evilPlayersCount - roles.filter(r => r > 0).length)).map(_ => Groups.Roles.SERVANT);
-      const minions = Array.from(Array(evilPlayersCount - roles.filter(r => r < 0).length)).map(_ => Groups.Roles.MINION);
-      _.shuffle(roles.concat(servants, minions)).forEach((r, i) => group.players[i].role = r);
+      const roles = additionalRoles.concat(['Merlin', 'Assassin']); // Required players
+      const servants = Array.from(new Array(playersCount - evilPlayersCount - roles.filter(r => Groups.ROLES[r].side).length)).map(() => 'Servant');
+      const minions = Array.from(new Array(evilPlayersCount - roles.filter(r => !Groups.ROLES[r].side).length)).map(() => 'Minion');
+      _.shuffle(roles.concat(servants, minions)).forEach((r, i) => players[i].role = r);
       Groups.update(groupId, {
-        $set: { players: group.players }
+        $set: { players: players, firstLeaderIndex: Math.floor(Math.random() * playersCount) }
       });
+      group = Groups.findOne(groupId); // Update local variable
+      group.startNewMission();
     } else {
       Groups.update(groupId, {
-        $set: { players: group.players.map(player => ({ id: player.id, role: Groups.Roles.UNDECIDED })) }
+        $set: { players: group.players.map(player => ({ id: player.id, role: 'Undecided' })), firstLeaderIndex: 0, messages: [] },
+        $unset: { guessMerlin: 1 }
       });
     }
-  },
-});
-
-export const selectRoles = new ValidatedMethod({
-  name: 'groups.selectRoles',
-  validate: new SimpleSchema({
-    groupId: { type: String },
-    selectedAdditionalRoles: { type: [Number] },
-  }).validator(),
-  run({ groupId, selectedAdditionalRoles }) {
-    const group = Groups.findOne(groupId);
-    if (selectedAdditionalRoles.filter(r => r < 0).length > group.getEvilPlayersCount() - 1) {
-      throw new Meteor.Error('groups.selectRoles.invalid', 'Invalid selected additional roles.');
-    }
-    Groups.update(groupId, {
-      $set: { additionalRoles: selectedAdditionalRoles }
-    });
   },
 });
 
@@ -116,18 +105,17 @@ export const selectMembers = new ValidatedMethod({
   name: 'groups.selectMembers',
   validate: new SimpleSchema({
     groupId: { type: String },
-    selectedMemberIndices: { type: [Number] },
+    memberIndices: { type: [Number] },
   }).validator(),
-  run({ groupId, selectedMemberIndices }) {
-    const group = Groups.findOne(groupId);
-    if (!group.isSelectedMembersValid(selectedMemberIndices)) {
+  run({ groupId, memberIndices }) {
+    let group = Groups.findOne(groupId);
+    if (!group.checkSelectedMembersValidation(memberIndices)) {
       throw new Meteor.Error('groups.selectMembers.invalid', 'Invalid selected mission team members.');
     }
-    const lastTeamMemberIndices = {};
-    lastTeamMemberIndices[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.memberIndices`] = selectedMemberIndices;
     Groups.update(groupId, {
-      $set: lastTeamMemberIndices
+      $set: { [`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.memberIndices`]: memberIndices }
     });
+    group = Groups.findOne(groupId); // Update local variable
     group.startWaitingForApproval();
   },
 });
@@ -136,18 +124,15 @@ export const approve = new ValidatedMethod({
   name: 'groups.approve',
   validate: new SimpleSchema({
     groupId: { type: String },
-    userId: { type: String },
     approval: { type: Boolean },
   }).validator(),
-  run({ groupId, userId, approval }) {
+  run({ groupId, approval }) {
     let group = Groups.findOne(groupId);
-    const lastTeamApproval = {};
-    lastTeamApproval[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.approvals.${group.players.map(p => p.id).indexOf(userId)}`] = approval;
     Groups.update(groupId, {
-      $set: lastTeamApproval
+      $set: { [`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.approvals.${group.players.map(p => p.id).indexOf(this.userId)}`]: approval }
     });
     group = Groups.findOne(groupId); // Update local variable
-    if (group.isDenied()) {
+    if (group.getLastTeamsCount() < Groups.MISSION_TEAMS_COUNT && group.isDenied()) { // Hammer
       group.startSelectingMembers();
     } else if (!group.isWaitingForApproval()) {
       group.startWaitingForVote();
@@ -159,15 +144,12 @@ export const vote = new ValidatedMethod({
   name: 'groups.vote',
   validate: new SimpleSchema({
     groupId: { type: String },
-    userId: { type: String },
     success: { type: Boolean },
   }).validator(),
-  run({ groupId, userId, success }) {
+  run({ groupId, success }) {
     let group = Groups.findOne(groupId);
-    const lastTeamSuccessVote = {};
-    lastTeamSuccessVote[`missions.${group.missions.length - 1}.teams.${group.missions[group.missions.length - 1].teams.length - 1}.successVotes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(userId))}`] = success;
     Groups.update(groupId, {
-      $set: lastTeamSuccessVote
+      $set: { [`missions.${group.missions.length - 1}.votes.${group.getLastTeam().memberIndices.indexOf(group.players.map(p => p.id).indexOf(this.userId))}`]: success }
     });
     group = Groups.findOne(groupId); // Update local variable
     if (!group.isWaitingForVote()) {
@@ -183,9 +165,33 @@ export const guess = new ValidatedMethod({
     merlinIndex: { type: Number },
   }).validator(),
   run({ groupId, merlinIndex }) {
-    const group = Groups.findOne(groupId);
+    let group = Groups.findOne(groupId);
     Groups.update(groupId, {
-      $set: { guessMerlin: group.players[merlinIndex].role == Groups.Roles.MERLIN }
+      $set: { guessMerlin: group.players[merlinIndex].role == 'Merlin' }
     });
+    group = Groups.findOne(groupId); // Update local variable
+    group.finish();
+  },
+});
+
+export const sendMessage = new ValidatedMethod({
+  name: 'groups.sendMessage',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    text: { type: String },
+  }).validator(),
+  run({ groupId, text }) {
+    if (text.length > 0) {
+      const group = Groups.findOne(groupId);
+      Groups.update(groupId, {
+        $push: {
+          messages: {
+            senderId: this.userId,
+            text: text,
+            sentAt: new Date(),
+          }
+        }
+      });
+    }
   },
 });

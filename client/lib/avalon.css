@@ -1,0 +1,470 @@
+/* 
+ * Override
+ */
+
+ul.bar_tabs {
+  background: transparent;
+}
+
+body {
+  color: #4B5F71;
+  background-color: #F5F5F5;
+}
+
+.container {
+  padding: 15px;
+}
+
+.profile_details:nth-child(3n) {
+  clear: none;
+}
+
+.profile_details .profile_view .bottom {
+  padding: 2px 0px;
+}
+
+ul.bar_tabs {
+  margin: 11px 0px;
+  padding-left: 0px;
+}
+
+ul.top_profiles li:nth-child(odd) {
+  background: transparent;
+}
+
+.media > .pull-right {
+  margin-left: 10px;
+}
+
+.media > .pull-left {
+  margin-right: 10px;
+}
+
+.media .profile_thumb {
+  padding: 0px;
+  border: none;
+}
+
+.navbar-nav > li > a {
+  padding: 5px 10px;
+}
+
+.progress.progress_sm {
+  margin-top: 18px;
+  margin-bottom: 0px; 
+}
+
+.tooltip-inner {
+  background-color: #34495E;
+  max-width: 400px;
+}
+
+.tooltip.in {
+  opacity: 1 !important;
+}
+
+ul.bar_tabs > li a,
+.x_panel {
+  padding: 10px 8px;
+}
+
+.x_panel {
+  background-color: #FBFBFB;
+}
+
+.top_nav .navbar-right {
+  width: initial;
+}
+
+.x_title h2 {
+  overflow: inherit;
+}
+
+ul.bar_tabs > li.active {
+  border-right: none;
+}
+
+ul.bar_tabs > li {
+  margin-left: 0px;
+}
+
+.login_wrapper {
+  margin-top: 60px;
+}
+
+.login_content {
+  min-width: 225px;
+}
+
+.toggle {
+  padding-top: 5px;
+  width: auto;
+}
+
+.btn,
+.btn:hover {
+  border-color: transparent;
+}
+
+/*
+ * Modified
+ */
+
+.login_content span {
+  float: left;
+}
+
+.profile_details {
+  margin-top: 15px;
+}
+
+.media-body {
+  background: #EFEFEF;
+  border-radius: 10px;
+  padding: 0px 10px;
+}
+
+.media-body small {
+  font-size: 70%;
+  color: #A8A8A8;
+}
+
+ul.top_profiles {
+  overflow: auto;
+}
+
+.avalon-summaries .panel-body {
+  padding: 5px;
+}
+
+.profile_img {
+  text-align: center;
+}
+
+.avatar-view {
+  cursor: auto;
+}
+
+.toggle h5 {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+/*
+ * Custom
+ */
+
+.avalon-logo {
+  height: 40px;
+  width: 40px;
+  margin: -10px 0px 10px;
+}
+
+.avalon-good,
+.avalon-role-servant {
+  color: #1ABB9C;
+}
+
+.avalon-role-merlin {
+  color: #3498DB;
+}
+
+.avalon-role-percival {
+  color: #50C1CF;
+}
+
+.avalon-evil,
+.avalon-role-minion {
+  color: #E74C3C;
+}
+
+.avalon-role-assassin {
+  color: #9B59B6;
+}
+
+.avalon-role-mordred {
+  color: #F39C12;
+}
+
+.avalon-role-morgana {
+  color: #34495E;
+}
+
+.avalon-role-oberon {
+  color: #9CC2CB;
+}
+
+/* Auth pages */
+
+.avalon-error,
+.avalon-error .form-control {
+  color: #AA0000 !important;
+  border-color: #A94442 !important;
+}
+
+/* Group page */
+
+.avalon-card:hover {
+  background: #E2E5E7;
+}
+
+.profile_details .profile_view.avalon-card:hover .bottom {
+  background: #D2D5D7;
+}
+
+.avalon-card-unselectable {
+  cursor: default;
+}
+
+.avalon-card-disable {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.avalon-card p,
+.avalon-card-unselectable p,
+.avalon-card-disable p {
+  margin: 0px;
+}
+
+button.avalon-card,
+button.avalon-card-unselectable,
+button.avalon-card-disable,
+button.avalon-card > div,
+button.avalon-card-unselectable > div,
+button.avalon-card-disable > div {
+  margin: 0px auto;
+  display: block !important;
+}
+
+button.avalon-card,
+button.avalon-card-unselectable,
+button.avalon-card-disable {
+  width: 80%;
+}
+
+.avalon-card-mark-left,
+.avalon-card-mark-top,
+.avalon-card-mark-right,
+.avalon-card-mark-bottom {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+}
+
+.avalon-card-mark-left {
+  top: -15px;
+  left: 5px;
+}
+
+.avalon-card-mark-top {
+  top: -20px;
+  left: 50%;
+  margin-left: -16px;
+}
+
+.avalon-card-mark-right {
+  top: -15px;
+  right: 5px;
+}
+
+.avalon-card-mark-bottom {
+  bottom: -10px;
+  right: 5px;
+}
+
+.avalon-token-mark-top,
+.avalon-token-mark-bottom {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+}
+
+.avalon-token-mark-top {
+  top: -20px;
+  left: 50%;
+  margin-left: -12px;
+}
+
+.avalon-token-mark-bottom {
+  bottom: -10px;
+  right: -5px;
+}
+
+.avalon-col-card-role,
+.avalon-col-card-player-5,
+.avalon-col-card-player-6,
+.avalon-col-card-player-7,
+.avalon-col-card-player-8,
+.avalon-col-card-player-9,
+.avalon-col-card-player-10 {
+  position: relative;
+  min-height: 1px;
+  float: left;
+  padding: 0px 5px;
+  width: 50%;
+  margin-bottom: 10px;
+}
+
+@media (min-width: 480px) {
+  .avalon-col-card-role,
+  .avalon-col-tn-6 {
+    width: 50%;
+  }
+
+  .avalon-col-card-player-5,
+  .avalon-col-card-player-6,
+  .avalon-col-card-player-7,
+  .avalon-col-card-player-8,
+  .avalon-col-card-player-9,
+  .avalon-col-card-player-10 {
+    width: 33.33333333%;
+  }
+}
+
+@media (min-width: 624px) {
+  .avalon-col-card-role {
+    width: 25%;
+  }
+
+  .avalon-col-nr-4,
+  .avalon-col-card-player-5,
+  .avalon-col-card-player-6 {
+    width: 33.33333333%;
+  }
+
+  .avalon-col-nr-8 {
+    width: 66.66666666%;
+  }
+
+  .avalon-col-card-player-7,
+  .avalon-col-card-player-8,
+  .avalon-col-card-player-9,
+  .avalon-col-card-player-10 {
+    width: 25%;
+  }
+}
+
+@media (min-width: 768px) {
+  .avalon-col-card-role {
+    width: 25%;
+  }
+
+  .avalon-col-card-player-5,
+  .avalon-col-card-player-6 {
+    width: 33.33333333%;
+  }
+
+  .avalon-col-card-player-7,
+  .avalon-col-card-player-8 {
+    width: 25%;
+  }
+
+  .avalon-col-card-player-9,
+  .avalon-col-card-player-10 {
+    width: 20%;
+  }
+}
+
+.avalon-avatar {
+  width: 85%;
+  margin: 5px auto;
+}
+
+.avalon-card-player-avatar {
+  max-height: 84px;
+  max-width: 84px;
+}
+
+.avalon-card-text {
+  height: 19px;
+}
+
+.avalon-hint {
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.avalon-hint > img {
+  width: 40px;
+  height: 40px;
+}
+
+.avalon-hint p {
+  margin: 0px 5px;
+  font-size: larger;
+  position: relative;
+}
+
+.avalon-summaries {
+  height: 350px;
+  overflow: auto;
+}
+
+.avalon-summary-result {
+  height: 24px;
+}
+
+.avalon-token {
+  margin: 2px;
+  width: 20%;
+  background-size: 100% 100%;
+  position: relative;
+}
+
+.avalon-token::after {
+  padding-top: 100%;
+  display: block;
+  content: '';
+}
+
+/* User page */
+
+.avalon-chart {
+  width: 100%;
+  height: 160px;
+}
+
+.profile_left .avalon-chart {
+  height: 120px;
+  margin: 0px auto;
+}
+
+@media (min-width: 480px) {
+  .avalon-chart {
+    height: 200px;
+  }
+
+  .profile_left .avalon-chart {
+    height: 140px;
+  }
+}
+
+@media (min-width: 624px) {
+  .avalon-chart {
+    height: 240px;
+  }
+
+  .profile_left .avalon-chart {
+    height: 160px;
+  }
+}
+
+@media (min-width: 768px) {
+  .avalon-chart {
+    height: 280px;
+  }
+
+  .profile_left .avalon-chart {
+    width: 80%;
+    height: 180px;
+  }
+}
+
+tspan {
+  fill: #4A4A4A;
+}
+
+.progress {
+  background-color: #D9534F;
+}

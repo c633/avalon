@@ -1,12 +1,14 @@
 import { Meteor } from 'meteor/meteor';
-import { Groups } from '../../api/groups/groups.js';
+import { Groups } from '../../api/groups/groups.jsx';
 import { createContainer } from 'meteor/react-meteor-data';
-import Lobby from '../pages/lobby';
+import Lobby from '../pages/lobby.jsx';
 
-export default createContainer(() => {
-  const loaded = Meteor.subscribe('groups.findAll').ready() && Meteor.subscribe('users.findAll').ready();
+export default createContainer(({ location: { query } }) => {
+  const name = query.name || '';
+  const page = Number.parseInt(query.page) || 1;
+  const loaded = Meteor.subscribe('groups.findAll', name, page).ready() && Meteor.subscribe('users.findAll').ready();
   return {
-    user: Meteor.user(),
+    _user: Meteor.user(), // NOTE: Additional prop: make page automatically re-render even if user logged out
     groups: Groups.find().fetch(),
     loaded: loaded
   };
