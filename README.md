@@ -6,6 +6,7 @@ Another site for Avalon players
 $ meteor npm install
 $ CLOUDINARY_KEY=<i>ApiKey</i> CLOUDINARY_SECRET=<i>ApiSecret</i> meteor --settings ./settings.json
 </pre>
+
 ### II. Deploy to Microsoft Azure Web app for Linux users
 #### 1. Prerequisite
 - Remove package `standard-minifier-js` due to build command fails while minifying app code
@@ -100,3 +101,13 @@ $ CLOUDINARY_KEY=<i>ApiKey</i> CLOUDINARY_SECRET=<i>ApiSecret</i> meteor --setti
 - *Demeteorize* then push to remote Azure repository
   
 [1]: https://raw.githubusercontent.com/christopheranderson/azure-demeteorizer/master/resources/web.config
+
+### III. Todos
+- Remove 'restart' button
+- Remove fixtures
+- Show result when approve/vote finished (Noti)
+- Change route: `/groups/:id` -> `/groups/:name`, `/users/:id` -> `/users/:name`
+- Clear text input chat after sending
+- Separate events
+- `pub/sub` issue
+- Update `Meteor`
