@@ -1,6 +1,7 @@
 import React from 'react';
-import { Groups } from '../../api/groups/groups.jsx'; // Constants only
+import { Messages } from '../../api/messages/messages.js';
 import { sendMessage } from '../../api/groups/methods.js';
+import { send } from '../../api/messages/methods.js';
 
 export default class MessagesContent extends React.Component {
   constructor(props) {
@@ -11,37 +12,33 @@ export default class MessagesContent extends React.Component {
   // REGION: Component Specifications
 
   render() {
-    const { group } = this.props;
-    const messages = (
-      <ul ref="messagesContainer" className="list-unstyled top_profiles scroll-view">
-        {
-          group.messages.map((m, i) => {
-            const sender = Meteor.users.findOne(m.senderId);
-            const otherPlayer = Meteor.userId() != m.senderId;
-            return (
-              <li key={i} className="media event">
-                <a href={`/users/${sender.username}`} className={`pull-${otherPlayer ? 'left' : 'right'} border-${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'} profile_thumb`}>
-                  <img src={sender.getAvatarSrc()} className={`img-responsive fa fa-user ${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'}`}/>
-                </a>
-                <div className="media-body">
-                  <b>{sender.username}</b>
-                  <p>{m.text}</p>
-                  <p>
-                    <small>{m.sentAt.toLocaleString('en-US', { hour12: false })}</small>
-                    {!group.hasPlayer(m.senderId) ? <span className="pull-right"><small>Left group</small></span> : null}
-                  </p>
-                </div>
-              </li>
-            );
-          })
-        }
-      </ul>
-    );
+    const { messages, canSend, groupId } = this.props;
     return (
       <div>
-        {messages}
+        <ul ref="messagesContainer" className="list-unstyled top_profiles scroll-view" style={{ height: '60vh' }}>
+          {
+            messages.map((m, i) => {
+              const sender = Meteor.users.findOne(m.senderId);
+              const otherPlayer = Meteor.userId() != m.senderId;
+              return (
+                <li key={i} className="media event">
+                  <a href={`/users/${sender.username}`} className={`pull-${otherPlayer ? 'left' : 'right'} profile_thumb`}>
+                    <img src={sender.getAvatarSrc()} className="img-responsive fa fa-user"/>
+                  </a>
+                  <div className="media-body">
+                    <b>{sender.username}</b>
+                    <p>{m.text}</p>
+                    <p>
+                      <small>{m.sentAt.toLocaleString('en-US', { hour12: false })}</small>
+                    </p>
+                  </div>
+                </li>
+              );
+            })
+          }
+        </ul>
         {
-          group.hasPlayer(Meteor.userId()) ?
+          canSend ?
             <form onSubmit={this.sendMessage}>
               <div className="input-group">
                 <input type="text" ref="text" name="text" className="form-control"/>
@@ -78,16 +75,26 @@ export default class MessagesContent extends React.Component {
 
   sendMessage(event) {
     event.preventDefault();
-    const groupId = this.props.group._id;
-    sendMessage.call({ groupId: groupId, text: this.refs.text.value }, err => {
-      if (err) {
-        alert(err.reason);
-      }
-    });
+    const { groupId } = this.props;
+    if (groupId) {
+      sendMessage.call({ groupId: groupId, text: this.refs.text.value }, err => {
+        if (err) {
+          alert(err.reason);
+        }
+      });
+    } else {
+      send.call({ text: this.refs.text.value }, err => {
+        if (err) {
+          alert(err.reason);
+        }
+      });
+    }
     this.refs.text.value = '';
   }
 }
 
 MessagesContent.propTypes = {
-  group: React.PropTypes.object,
+  messages: React.PropTypes.array,
+  canSend: React.PropTypes.bool,
+  groupId: React.PropTypes.string,
 };

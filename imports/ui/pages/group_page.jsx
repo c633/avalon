@@ -37,7 +37,7 @@ export default class GroupPage extends React.Component {
                     </ul>
                     <div className="tab-content">
                       <div role="tabpanel" className="tab-pane fade active in" id="tab_messages">
-                        <MessagesContent group={group}/>
+                        <MessagesContent messages={group.messages} canSend={group.hasPlayer(Meteor.userId())} groupId={group._id}/>
                       </div>
                       <div role="tabpanel" className="tab-pane fade" id="tab_missions">
                         <MissionsContent group={group}/>
@@ -68,7 +68,7 @@ export default class GroupPage extends React.Component {
                     <PlayersContent group={group}/>
                   </div>
                   <div role="tabpanel" className="tab-pane fade" id="tab_messages">
-                    <MessagesContent group={group}/>
+                    <MessagesContent messages={group.messages} canSend={group.hasPlayer(Meteor.userId())} groupId={group._id}/>
                   </div>
                   <div role="tabpanel" className="tab-pane fade" id="tab_missions">
                     <MissionsContent group={group}/>

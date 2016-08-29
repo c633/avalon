@@ -1,5 +1,4 @@
 import React from 'react';
-import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { sendMessage } from '../../api/groups/methods.js';
 
 export default class MissionsContent extends React.Component {
