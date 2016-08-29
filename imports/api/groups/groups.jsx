@@ -65,13 +65,19 @@ MessagesSchema = new SimpleSchema({
 
 Groups.schema = new SimpleSchema({
   ownerId: { type: String, regEx: SimpleSchema.RegEx.Id }, // Owner's id
-  name: { type: String },
+  name: { type: String, regEx: /^[a-zA-Z0-9_]{6,}$/, index: true, unique: true },
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
   firstLeaderIndex: { type: Number, defaultValue: 0 },
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
   guessMerlin: { type: Boolean, optional: true }, // Indicate whether Assassin correctly guesses Merlin's identity or not
   messages: { type: [MessagesSchema], defaultValue: [] },
   createdAt: { type: Date }
+});
+
+Groups.schema.messages({
+  'regEx name': [
+    { msg: 'Please use only letters (a-z), numbers, and underscores' }
+  ]
 });
 
 Groups.attachSchema(Groups.schema);
@@ -95,6 +101,7 @@ Groups.publicFields = {
 };
 
 Groups.helpers({
+  // REGION: Group's information
   getOwner() {
     return Meteor.users.findOne(this.ownerId);
   },
@@ -130,29 +137,7 @@ Groups.helpers({
   getLastTeamsCount() {
     return this.getLastMission().teams.length;
   },
-  findRequiredFailVotesCount(missionIndex) {
-    return missionIndex == 3 && this.players.length >= 7 ? 2 : 1;
-  },
-  getSummaries() {
-    let lastMissionsTeamsCount = 0;
-    return this.missions.map((m, i) => {
-      const mission = m.teams.map((t, j) => {
-        const team = { leaderIndex: (this.firstLeaderIndex + lastMissionsTeamsCount + j) % this.players.length, memberIndices: t.memberIndices, denierIndices: [], failVotesCount: null, result: undefined };
-        if (t.memberIndices.length != 0 && t.approvals.indexOf(null) == -1) {
-          team.denierIndices = t.approvals.map((a, i) => a ? -1 : i).filter(i => i >= 0);
-          if (j < Groups.MISSION_TEAMS_COUNT - 1 && t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) { // Denied, Hammer
-            team.result = null;
-          } else if (m.votes.indexOf(null) == -1) {
-            team.failVotesCount = m.votes.filter(a => !a).length;
-            team.result = team.failVotesCount < this.findRequiredFailVotesCount(i) ? true : false;
-          }
-        }
-        return team;
-      });
-      lastMissionsTeamsCount += m.teams.length;
-      return mission;
-    });
-  },
+  // REGION: Helpers for gameplay (usually apply to last mission or last team)
   getLeader() {
     return this.missions.length > 0 ? Meteor.users.findOne(this.players[(this.firstLeaderIndex + this.getTeamsCount() - 1) % this.players.length].id) : null;
   },
@@ -165,11 +150,11 @@ Groups.helpers({
   hasMember(userId) {
     return this.getLastTeam() != null && this.getLastTeam().memberIndices.find(i => this.players[i].id == userId) != undefined;
   },
-  isSelectingMembers() {
-    return this.getLastTeam() != null && this.getLastTeam().memberIndices.length == 0;
-  },
   checkSelectedAdditionalRolesValidation(selectedAdditionalRoles) {
     return selectedAdditionalRoles.filter(r => !Groups.ROLES[r].side).length <= this.getEvilPlayersCount() - 1 && (selectedAdditionalRoles.indexOf('Percival') != -1 ? selectedAdditionalRoles.indexOf('Morgana') != -1 : true);
+  },
+  isSelectingMembers() {
+    return this.getLastTeam() != null && this.getLastTeam().memberIndices.length == 0;
   },
   checkSelectedMembersValidation(selectedMemberIndices) {
     return selectedMemberIndices.length != Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1] || selectedMemberIndices.find(i => i >= this.players.length) != undefined ? false : true;
@@ -191,6 +176,35 @@ Groups.helpers({
   },
   checkMemberHasVoted(userId) {
     return this.getLastMission() != null && this.getLastMission().votes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))] != null;
+  },
+  findRequiredFailVotesCount(missionIndex) {
+    return missionIndex == 3 && this.players.length >= 7 ? 2 : 1;
+  },
+  // REGION: Other helper methods stub
+  getMissions(verbose = false) {
+    let lastMissionsTeamsCount = 0;
+    return this.missions.map((m, i) => {
+      const mission = m.teams.map((t, j) => {
+        const team = verbose ? { leaderIndex: (this.firstLeaderIndex + lastMissionsTeamsCount + j) % this.players.length, memberIndices: t.memberIndices, denierIndices: [], failVotesCount: undefined, result: undefined } : { result: undefined };
+        if (t.memberIndices.length != 0 && t.approvals.indexOf(null) == -1) {
+          if (verbose) {
+            team.denierIndices = t.approvals.map((a, i) => a ? -1 : i).filter(i => i >= 0);
+          }
+          if (j < Groups.MISSION_TEAMS_COUNT - 1 && t.approvals.filter(a => !a).length >= t.approvals.filter(a => a).length) { // Denied, Hammer
+            team.result = null;
+          } else if (m.votes.indexOf(null) == -1) {
+            const failVotesCount = m.votes.filter(a => !a).length;
+            if (verbose) {
+              team.failVotesCount = failVotesCount;
+            }
+            team.result = failVotesCount < this.findRequiredFailVotesCount(i) ? true : false;
+          }
+        }
+        return team;
+      });
+      lastMissionsTeamsCount += m.teams.length;
+      return mission;
+    });
   },
   getSituation() {
     const situation = { status: '', slot: undefined, result: undefined };

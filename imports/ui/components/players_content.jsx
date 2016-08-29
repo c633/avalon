@@ -23,7 +23,7 @@ export default class PlayersContent extends React.Component {
     const isSelectingMembers = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
     const isGuessingMerlin = group.isGuessingMerlin() && group.findPlayerRole(Meteor.userId()) == 'Assassin';
     const leader = group.getLeader();
-    const summaries = group.getSummaries();
+    const missions = group.getMissions();
     return (
       <div>
         <div className="row" style={{ marginTop: '25px' }}>
@@ -32,15 +32,15 @@ export default class PlayersContent extends React.Component {
               {
                 group.isPlaying() ?
                   Array.from(new Array(Groups.MISSIONS_COUNT)).map((_, index) => {
-                    const summary = summaries[index];
-                    const result = summary && (summary.length > 0 || null) && summary[summary.length - 1].result;
+                    const mission = missions[index];
+                    const result = mission && (mission.length > 0 || null) && mission[mission.length - 1].result;
                     const membersCount = Groups.MISSIONS_MEMBERS_COUNT[group.players.length][index];
                     const needMoreFailVotes = group.findRequiredFailVotesCount(index) > 1;
-                    const notPlayedYet = index > summaries.length - 1;
+                    const notPlayedYet = index > missions.length - 1;
                     const title = `<b>Mission ${index + 1}</b><br/>${notPlayedYet ? `Need <b><i>${membersCount}</i></b> team members` : result === undefined ? `<i style="color: #F39C12;">PLAYING</i><br/>Need <b><i>${membersCount}</i></b> team members` : result == null ? 'Denied' : result ? '<b class="avalon-good">Success</b>' : '<b class="avalon-evil">Fail</b>'}` + (needMoreFailVotes ? '<br/>(Require <i class="avalon-evil"><b>2</b> fail votes</i> for the mission to fail)' : '');
                     return (
                       <div key={index} className="avalon-token" style={{ backgroundImage: `url("/images/tokens/mission-${result === undefined ? `members-${membersCount}` : result == null ? 'denied' : result ? 'success' : 'fail'}.png")`, 'WebkitFilter': notPlayedYet ? 'grayscale(100%)' : 'grayscale(0%)' }} data-container="body" data-toggle="tooltip" data-html={true} title={title}>
-                        {index == summaries.length - 1 ? <img className="img-responsive avalon-token-mark-top" src="/images/tokens/playing.png"/> : null}
+                        {index == missions.length - 1 ? <img className="img-responsive avalon-token-mark-top" src="/images/tokens/playing.png"/> : null}
                         {needMoreFailVotes ? <img className="img-responsive avalon-token-mark-bottom" src="/images/tokens/more-fail-votes.png"/> : null}
                       </div>
                     );
@@ -61,7 +61,7 @@ export default class PlayersContent extends React.Component {
               const isGuessed = this.state.guessedIndex == index;
               const isSelectable =
                 isSelectingMembers ?
-                  (isMember || this.state.selectedMemberIndices.length < Groups.MISSIONS_MEMBERS_COUNT[group.players.length][summaries.length - 1] ? true : null) :
+                  (isMember || this.state.selectedMemberIndices.length < Groups.MISSIONS_MEMBERS_COUNT[group.players.length][missions.length - 1] ? true : null) :
                   isGuessingMerlin ? !isGuessed : false;
               return <PlayerCard
                 key={player.user._id} onClick={() => { if (isSelectable) this.onPlayerCardClick(index); }}
@@ -89,7 +89,7 @@ export default class PlayersContent extends React.Component {
               </span> : null
           }
           {isGuessingMerlin ? <button className="btn btn-dark" onClick={this.guess}>Guess Merlin</button> : null}
-          {group.hasOwner(Meteor.userId()) ? <div><button className="btn btn-primary" onClick={this.restart}>Restart game</button></div> : null}
+          {/*group.hasOwner(Meteor.userId()) ? <div><button className="btn btn-primary" onClick={this.restart}>Restart game</button></div> : null*/}
         </div>
         {this.state.errorModal.isShowing ? <ErrorModal hide={() => this.setState({ errorModal: { isShowing: false } })} reason={this.state.errorModal.reason}/> : null}
       </div>

@@ -11,22 +11,18 @@ export default class Signup extends React.Component {
 
   render() {
     const { errors } = this.state;
-    let usernameError = errors['username'] || errors['reason'];
-    let passwordError = errors['password'] || errors['reason'];
-    usernameError = usernameError && (usernameError.toLowerCase().indexOf('user') > -1 ? usernameError : '');
-    passwordError = passwordError && (passwordError.toLowerCase().indexOf('password') > -1 ? passwordError : '');
     return (
       <div className="login_wrapper">
         <div className="animate form login_form">
           <section className="login_content">
             <form onSubmit={this.signup}>
               <h1>Signup</h1>
-              <div className={usernameError ? 'avalon-error' : ''}>
-                <span>{usernameError}</span>
+              <div className={errors.username ? 'avalon-error' : ''}>
+                <span>{errors.username}</span>
                 <input type="text" className="form-control" placeholder="Username" ref="username" name="username" required=""/>
               </div>
-              <div className={passwordError ? 'avalon-error' : ''}>
-                <span>{passwordError}</span>
+              <div className={errors.password ? 'avalon-error' : ''}>
+                <span>{errors.password}</span>
                 <input type="password" className="form-control" placeholder="Password" ref="password" name="password" required=""/>
               </div>
               <div>
@@ -58,21 +54,26 @@ export default class Signup extends React.Component {
     const username = this.refs.username.value;
     const password = this.refs.password.value;
     const errors = {};
-    if (!username) {
-      errors.username = 'User name required';
+    if (!username.match(/^[a-zA-Z0-9_]+$/)) {
+      errors.username = 'User name can use only letters (a-z), numbers, and underscores';
     }
-    this.setState({ errors });
     if (Object.keys(errors).length) {
+      this.setState({ errors });
       return;
     }
-    Accounts.createUser({ // Force create new user
+    Accounts.createUser({ // Create new user
       username: username,
       password: password,
     }, err => {
       if (err) {
-        this.setState({
-          errors: { reason: err.reason },
-        });
+        const errors = {};
+        if (err.reason.toLowerCase().indexOf('user') > -1) {
+          errors.username = err.reason;
+        }
+        if (err.reason.toLowerCase().indexOf('password') > -1) {
+          errors.password = err.reason;
+        }
+        this.setState({ errors: errors });
       } else {
         this.context.router.push('/');
       }

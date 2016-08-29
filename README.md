@@ -103,10 +103,11 @@ $ CLOUDINARY_KEY=<i>ApiKey</i> CLOUDINARY_SECRET=<i>ApiSecret</i> meteor --setti
 - *Demeteorize* then push to remote Azure repository
 
 ### III. Todos
-- [ ] Remove 'restart' button
-- [ ] Remove fixtures
+- [x] Remove 'restart' button
+- [x] Remove fixtures
 - [x] Clear message text input after sending
 - [ ] Change route: `/groups/:id` -> `/groups/:name`, `/users/:id` -> `/users/:name`
+- [x] Group name: format validation and unique
 - [ ] Show result when approve/vote finished (Notification)
 - [ ] Separate events
 - [ ] `pub/sub` issue

@@ -10,6 +10,9 @@ export const insert = new ValidatedMethod({
     name: { type: String },
   }).validator(),
   run({ name }) {
+    if (Groups.find({ name: name }).count() > 0) {
+      throw new Meteor.Error('group.insert', 'Group\'s name already exists');
+    }
     const group = {
       ownerId: this.userId,
       name: name,
@@ -199,11 +202,11 @@ export const sendMessage = new ValidatedMethod({
 // REGION: Helpers
 
 const beginNewMission = (group) => {
-  const summaryResults = group.getSummaries().map(m => m[m.length - 1].result);
-  if (summaryResults.filter(m => !m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
+  const missionResults = group.getMissions().map(m => m[m.length - 1].result);
+  if (missionResults.filter(m => !m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
     finish(group);
     return;
-  } else if (summaryResults.filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
+  } else if (missionResults.filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
     beginGuessingMerlin(group);
     return;
   }
@@ -280,7 +283,7 @@ const finish = (group) => {
   for (const p of group.players) {
     playerActivities.push({ id: p.id, activity: { finishedAt: new Date(), role: p.role, result: Groups.ROLES[p.role].side ? result : !result, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 } });
   };
-  for (const m of group.getSummaries()) {
+  for (const m of group.getMissions(true)) {
     for (const t of m) {
       for (const i of t.memberIndices) {
         if (t.result == null) {

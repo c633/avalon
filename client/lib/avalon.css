@@ -133,7 +133,7 @@ ul.top_profiles {
   overflow: auto;
 }
 
-.avalon-summaries .panel-body {
+.avalon-missions .panel-body {
   padding: 5px;
 }
 
@@ -396,12 +396,12 @@ button.avalon-card-disable {
   position: relative;
 }
 
-.avalon-summaries {
+.avalon-missions {
   height: 350px;
   overflow: auto;
 }
 
-.avalon-summary-result {
+.avalon-mission-result {
   height: 24px;
 }
 

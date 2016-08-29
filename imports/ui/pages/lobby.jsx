@@ -5,12 +5,14 @@ import { insert } from '../../api/groups/methods.js';
 export default class Lobby extends React.Component {
   constructor(props) {
     super(props);
+    this.state = { error: null };
     this.createGroup = this.createGroup.bind(this);
   }
 
   // REGION: Component Specifications
 
   render() {
+    const { error } = this.state;
     const { groups, loaded } = this.props;
     const formCreateGroup = !!Meteor.userId() ? (
       <div className="x_content">
@@ -19,8 +21,9 @@ export default class Lobby extends React.Component {
           <div className="form-group">
             <label className="control-label col-sm-3" htmlFor="first-name">Group Name <span className="required">*</span>
             </label>
-            <div className="col-sm-6">
+            <div className={`col-sm-6 ${error ? 'avalon-error' : ''}`}>
               <input type="text" ref="name" name="name" className="form-control"/>
+              <span>{error}</span>
             </div>
             <div className="col-sm-3">
               <button type="submit" className="btn btn-default">Create new group</button>
@@ -50,9 +53,18 @@ export default class Lobby extends React.Component {
   createGroup(event) {
     event.preventDefault();
     const { router } = this.context;
-    const groupId = insert.call({ name: this.refs.name.value }, err => {
+    const name = this.refs.name.value;
+    let error = null;
+    if (name.length < 6) {
+      error = "Please use at least 6 characters"
+    }
+    this.setState({ error });
+    if (error) {
+      return;
+    }
+    const groupId = insert.call({ name: name }, err => {
       if (err) {
-        alert(err.reason);
+        this.setState({ error: err.reason });
       } else {
         router.push(`/groups/${groupId}`);
       }
