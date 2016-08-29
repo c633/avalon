@@ -101,8 +101,8 @@ ul.bar_tabs > li {
   width: auto;
 }
 
-.btn,
-.btn:hover {
+.btn:not(.btn-default),
+.btn:hover:not(.btn-default) {
   border-color: transparent;
 }
 

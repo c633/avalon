@@ -14,15 +14,15 @@ export default class UserActivity extends React.Component {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sepr', 'Oct', 'Nov', 'Dec'];
     const groupChartData = dates.map(date =>
       activities.filter(a =>
-        a.finishedAt.getDate() == date).reduce((c, a) => {
-          return { date: c.date, winTimesCount: c.winTimesCount + (a.result ? 1 : 0), loseTimesCount: c.loseTimesCount + (!a.result ? 1 : 0) };
-        }, { date: date + ` ${monthNames[month]}`, winTimesCount: 0, loseTimesCount: 0 })
+        a.finishedAt.getDate() == date).reduce((c, a) =>
+          ({ date: c.date, winTimesCount: c.winTimesCount + (a.result ? 1 : 0), loseTimesCount: c.loseTimesCount + (!a.result ? 1 : 0) }),
+          { date: date + ` ${monthNames[month]}`, winTimesCount: 0, loseTimesCount: 0 })
     );
     const teamChartData = dates.map(date =>
       activities.filter(a =>
-        a.finishedAt.getDate() == date).reduce((c, a) => {
-          return { date: c.date, deniedTeamsCount: c.deniedTeamsCount + a.deniedTeamsCount, successTeamsCount: c.successTeamsCount + a.successTeamsCount, failTeamsCount: c.failTeamsCount + a.failTeamsCount };
-        }, { date: date + ` ${monthNames[month]}`, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 })
+        a.finishedAt.getDate() == date).reduce((c, a) =>
+          ({ date: c.date, deniedTeamsCount: c.deniedTeamsCount + a.deniedTeamsCount, successTeamsCount: c.successTeamsCount + a.successTeamsCount, failTeamsCount: c.failTeamsCount + a.failTeamsCount }),
+          { date: date + ` ${monthNames[month]}`, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 })
     );
     const groupChartConfig = {
       data: groupChartData,

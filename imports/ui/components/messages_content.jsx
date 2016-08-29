@@ -82,10 +82,9 @@ export default class MessagesContent extends React.Component {
     sendMessage.call({ groupId: groupId, text: this.refs.text.value }, err => {
       if (err) {
         alert(err.reason);
-      } else {
-        this.refs.text.value = '';
       }
     });
+    this.refs.text.value = '';
   }
 }
 

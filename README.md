@@ -61,6 +61,8 @@ $ CLOUDINARY_KEY=<i>ApiKey</i> CLOUDINARY_SECRET=<i>ApiSecret</i> meteor --setti
 
 #### 3. Move app to Azure
 ##### On Azure Web app
+- *General settings*
+  - Enable __Web sockets__
 - Add *App settings*
   - __WEBSITE_NODE_DEFAULT_VERSION__: `4.4.7`
   - __ROOT_URL__: *AppRootUrl*        (Example: http://*site-name*.azurewebsites.net/)
@@ -86,7 +88,7 @@ $ CLOUDINARY_KEY=<i>ApiKey</i> CLOUDINARY_SECRET=<i>ApiSecret</i> meteor --setti
   </pre>
 
 #### 4. Store image using `cloudinary`
-##### On Azure Web app
+##### On Azure Web app 
 - Add extra *App settings* for `cloudinary` config
   - __CLOUDINARY_KEY__: *ApiKey*
   - __CLOUDINARY_SECRET__: *ApiSecret*
@@ -99,15 +101,15 @@ $ CLOUDINARY_KEY=<i>ApiKey</i> CLOUDINARY_SECRET=<i>ApiSecret</i> meteor --setti
   $ meteor add lepozepo:cloudinary
   ```
 - *Demeteorize* then push to remote Azure repository
-  
-[1]: https://raw.githubusercontent.com/christopheranderson/azure-demeteorizer/master/resources/web.config
 
 ### III. Todos
-- Remove 'restart' button
-- Remove fixtures
-- Show result when approve/vote finished (Noti)
-- Change route: `/groups/:id` -> `/groups/:name`, `/users/:id` -> `/users/:name`
-- Clear text input chat after sending
-- Separate events
-- `pub/sub` issue
-- Update `Meteor`
+- [ ] Remove 'restart' button
+- [ ] Remove fixtures
+- [x] Clear message text input after sending
+- [ ] Change route: `/groups/:id` -> `/groups/:name`, `/users/:id` -> `/users/:name`
+- [ ] Show result when approve/vote finished (Notification)
+- [ ] Separate events
+- [ ] `pub/sub` issue
+- [ ] Update `Meteor`
+  
+[1]: https://raw.githubusercontent.com/christopheranderson/azure-demeteorizer/master/resources/web.config

@@ -20,7 +20,7 @@ export default class Lobby extends React.Component {
             <label className="control-label col-sm-3" htmlFor="first-name">Group Name <span className="required">*</span>
             </label>
             <div className="col-sm-6">
-              <input type="text" ref="name" name="name" required="required" className="form-control"/>
+              <input type="text" ref="name" name="name" className="form-control"/>
             </div>
             <div className="col-sm-3">
               <button type="submit" className="btn btn-default">Create new group</button>
