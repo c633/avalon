@@ -15,7 +15,7 @@ Meteor.publish('groups.findAll', (name, page) => {
   return Groups.find(selector, { fields: Groups.publicFields.findAll, sort: { createdAt: -1 }, limit: GROUPS_PER_PAGE });
 });
 
-Meteor.publish('groups.findOne', id => {
-  check(id, String);
-  return Groups.find({ _id: id }, { fields: Groups.publicFields.findOne });
+Meteor.publish('groups.findOneByName', name => {
+  check(name, String);
+  return Groups.find({ name: name }, { fields: Groups.publicFields.findOne });
 });

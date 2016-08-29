@@ -19,16 +19,16 @@ export default class GroupRow extends React.Component {
     return (
       <tr>
         <td>
-          <a href={`/groups/${group._id}`}><b>{group.name}</b></a>
+          <a href={`/groups/${group.name}`}><b>{group.name}</b></a>
           <br/>
-          <small>Owner: <a href={`/users/${group.getOwner()._id}`}>{group.getOwner().username}</a></small>
+          <small>Owner: <a href={`/users/${group.getOwner().username}`}>{group.getOwner().username}</a></small>
         </td>
         <MediumAndSmallDevice>
           <td>
             <ul className="list-inline">
               {group.getPlayers().map(p =>
                 <li key={p.user._id}>
-                  <a href={`/users/${p.user._id}`}>
+                  <a href={`/users/${p.user.username}`}>
                     <img src={p.user.getAvatarSrc()} className="avatar" alt="Avatar" data-container="body" data-toggle="tooltip" title={p.user.username}/>
                   </a>
                 </li>
@@ -58,7 +58,7 @@ export default class GroupRow extends React.Component {
           }
         </td>
         <td>
-          <a href={`/groups/${group._id}`} className="btn btn-sm btn-dark"><i className="fa fa-group"></i> Go to</a>
+          <a href={`/groups/${group.name}`} className="btn btn-sm btn-dark"><i className="fa fa-group"></i> Go to</a>
           {
             !!Meteor.userId() && (joinedThisGroup || situation.slot != false) && !isPlaying ?
               !joinedThisGroup && !isPlaying ?
@@ -80,12 +80,12 @@ export default class GroupRow extends React.Component {
 
   joinGroup() {
     const { router } = this.context;
-    const groupId = this.props.group._id;
-    join.call({ groupId: groupId }, err => {
+    const { group } = this.props;
+    join.call({ groupId: group._id }, err => {
       if (err) {
         alert(err.reason);
       } else {
-        router.push(`/groups/${groupId}`);
+        router.push(`/groups/${group.name}`);
       }
     });
   }

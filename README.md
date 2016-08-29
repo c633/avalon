@@ -106,7 +106,7 @@ $ CLOUDINARY_KEY=<i>ApiKey</i> CLOUDINARY_SECRET=<i>ApiSecret</i> meteor --setti
 - [x] Remove 'restart' button
 - [x] Remove fixtures
 - [x] Clear message text input after sending
-- [ ] Change route: `/groups/:id` -> `/groups/:name`, `/users/:id` -> `/users/:name`
+- [x] Change route: `/groups/:id` -> `/groups/:name`, `/users/:id` -> `/users/:username`
 - [x] Group name: format validation and unique
 - [ ] Show result when approve/vote finished (Notification)
 - [ ] Separate events

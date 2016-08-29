@@ -14,9 +14,9 @@ export const renderRoutes = () => (
     <Route path="" component={AppContainer}>
       <Route path="/" component={LobbyContainer}/>
       <Route component={Auth}>
-        <Route path="/groups/:id" component={GroupContainer}/>
+        <Route path="/groups/:name" component={GroupContainer}/>
       </Route>
-      <Route path="/users/:id" component={UserContainer}/>
+      <Route path="/users/:username" component={UserContainer}/>
       <Route path="/login" component={Login}/>
       <Route path="/signup" component={Signup}/>
       <Route path="/rules" component={Rules}/>

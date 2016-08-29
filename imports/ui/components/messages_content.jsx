@@ -20,7 +20,7 @@ export default class MessagesContent extends React.Component {
             const otherPlayer = Meteor.userId() != m.senderId;
             return (
               <li key={i} className="media event">
-                <a href={`/users/${m.senderId}`} className={`pull-${otherPlayer ? 'left' : 'right'} border-${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'} profile_thumb`}>
+                <a href={`/users/${sender.username}`} className={`pull-${otherPlayer ? 'left' : 'right'} border-${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'} profile_thumb`}>
                   <img src={sender.getAvatarSrc()} className={`img-responsive fa fa-user ${group.hasPlayer(m.senderId) ? otherPlayer ? 'blue' : 'green' : 'dark'}`}/>
                 </a>
                 <div className="media-body">

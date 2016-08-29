@@ -66,7 +66,7 @@ export default class Lobby extends React.Component {
       if (err) {
         this.setState({ error: err.reason });
       } else {
-        router.push(`/groups/${groupId}`);
+        router.push(`/groups/${name}`);
       }
     });
   }
