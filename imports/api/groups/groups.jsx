@@ -52,6 +52,11 @@ TeamsSchema = new SimpleSchema({
   approvals: { type: [Boolean], defaultValue: [] }, // Indicate players whether to approve the mission team make-up or not, with indices correspond to `players.id`
 });
 
+LadiesSchema = new SimpleSchema({
+  playerIndex: { type: Number, optional: true, defaultValue: undefined }, // Index of player who were selected to be Lady of the Lake
+  revealedSide: { type: Boolean, optional: true, defaultValue: undefined },
+});
+
 MissionsSchema = new SimpleSchema({
   teams: { type: [TeamsSchema], defaultValue: [] },
   votes: { type: [Boolean], defaultValue: [] }, // Indicate members whether to vote for the mission to success or not, with indices correspond to `missions.teams.memberIndices`
@@ -68,6 +73,7 @@ Groups.schema = new SimpleSchema({
   name: { type: String, regEx: /^[a-zA-Z0-9_]{6,}$/, index: true, unique: true },
   players: { type: [PlayersSchema], defaultValue: [] }, // Group players, include the owner
   firstLeaderIndex: { type: Number, defaultValue: 0 },
+  ladies: { type: [LadiesSchema], optional: true, defaultValue: undefined },
   missions: { type: [MissionsSchema], defaultValue: [] }, // Mission proposals
   guessMerlin: { type: Boolean, optional: true }, // Indicate whether Assassin correctly guesses Merlin's identity or not
   messages: { type: [MessagesSchema], defaultValue: [] },
@@ -94,6 +100,7 @@ Groups.publicFields = {
     name: 1,
     players: 1,
     firstLeaderIndex: 1,
+    ladies: 1,
     missions: 1,
     guessMerlin: 1,
     messages: 1,
@@ -117,9 +124,13 @@ Groups.helpers({
   hasPlayer(userId) {
     return this.players.find(p => p.id == userId) != undefined;
   },
-  findPlayerRole(userId) { // Force return `null` if group has no such user (instead of `undefined`)
+  findPlayerRole(userId) {
     const player = this.players.find(p => p.id == userId);
     return (player || null) && player.role;
+  },
+  findPlayerSide(userId) {
+    const role = this.findPlayerRole(userId);
+    return role && Groups.ROLES[role].side;
   },
   isPlaying() {
     return this.missions.length != 0;
@@ -127,7 +138,7 @@ Groups.helpers({
   getLastMission() { // Private use only
     return this.missions[this.missions.length - 1];
   },
-  getLastTeam() { // Force return `null` if missions list or teams list is empty (instead of `undefined`)
+  getLastTeam() {
     const lastMission = this.getLastMission();
     return (lastMission || null) && lastMission.teams && lastMission.teams[lastMission.teams.length - 1] || null;
   },
@@ -147,35 +158,64 @@ Groups.helpers({
   hasHammer(userId) {
     return this.missions.length > 0 ? this.players[(this.firstLeaderIndex + this.getTeamsCount() - this.getLastTeamsCount() + Groups.MISSION_TEAMS_COUNT - 1) % this.players.length].id == userId : false;
   },
+  getLady() {
+    const ladies = this.ladies && this.ladies.filter(l => l.playerIndex != null && l.revealedSide !== null);
+    return ladies != null ? Meteor.users.findOne(this.players[ladies[ladies.length - 1].playerIndex].id) : null;
+  },
+  getNextLady() {
+    const ladies = this.ladies && this.ladies.filter(l => l.playerIndex != null && l.revealedSide === null);
+    return ladies != null ? Meteor.users.findOne(this.players[ladies[ladies.length - 1].playerIndex].id) : null;
+  },
+  hasLady(userId) {
+    const ladies = this.ladies && this.ladies.filter(l => l.playerIndex != null && l.revealedSide !== null);
+    return ladies != null && ladies.length > 0 && this.players[ladies[ladies.length - 1].playerIndex].id == userId;
+  },
+  hasNextLady(userId) {
+    const ladies = this.ladies && this.ladies.filter(l => l.playerIndex != null && l.revealedSide === null);
+    return ladies != null && ladies.length > 0 && this.players[ladies[ladies.length - 1].playerIndex].id == userId;
+  },
   hasMember(userId) {
-    return this.getLastTeam() != null && this.getLastTeam().memberIndices.find(i => this.players[i].id == userId) != undefined;
+    const lastTeam = this.getLastTeam();
+    return lastTeam != null && lastTeam.memberIndices.find(i => this.players[i].id == userId) != undefined;
   },
   checkSelectedAdditionalRolesValidation(selectedAdditionalRoles) {
-    return selectedAdditionalRoles.filter(r => !Groups.ROLES[r].side).length <= this.getEvilPlayersCount() - 1 && (selectedAdditionalRoles.indexOf('Percival') != -1 ? selectedAdditionalRoles.indexOf('Morgana') != -1 : true);
+    return selectedAdditionalRoles.filter(r => Groups.ROLES[r].side == false).length <= this.getEvilPlayersCount() - 1 && (selectedAdditionalRoles.indexOf('Percival') != -1 ? selectedAdditionalRoles.indexOf('Morgana') != -1 : true);
   },
   isSelectingMembers() {
-    return this.getLastTeam() != null && this.getLastTeam().memberIndices.length == 0;
+    const lastTeam = this.getLastTeam();
+    return lastTeam != null && lastTeam.memberIndices.length == 0;
   },
   checkSelectedMembersValidation(selectedMemberIndices) {
     return selectedMemberIndices.length != Groups.MISSIONS_MEMBERS_COUNT[this.players.length][this.missions.length - 1] || selectedMemberIndices.find(i => i >= this.players.length) != undefined ? false : true;
   },
   isWaitingForApproval() {
-    return this.getLastTeam() != null && this.getLastTeam().approvals.indexOf(null) != -1;
+    const lastTeam = this.getLastTeam();
+    return lastTeam != null && lastTeam.approvals.indexOf(null) != -1;
   },
   isDenied() {
-    return this.getLastTeam() != null && this.getLastTeam().approvals.indexOf(null) == -1 && this.getLastTeam().approvals.filter(a => !a).length >= this.getLastTeam().approvals.filter(a => a).length;
+    const lastTeam = this.getLastTeam();
+    return lastTeam != null && lastTeam.approvals.indexOf(null) == -1 && lastTeam.approvals.filter(a => !a).length >= lastTeam.approvals.filter(a => a).length;
   },
   isWaitingForVote() {
-    return this.getLastMission() != null && this.getLastMission().votes.indexOf(null) != -1;
+    const lastMission = this.getLastMission();
+    return lastMission != null && lastMission.votes.indexOf(null) != -1;
+  },
+  isSelectingLady() {
+    return this.ladies && this.ladies[this.ladies.length - 1].playerIndex == null;
+  },
+  isRevealingLady() {
+    return this.ladies && this.ladies[this.ladies.length - 1].revealedSide === null;
   },
   isGuessingMerlin() {
     return this.guessMerlin === null;
   },
   checkPlayerHasApproved(userId) {
-    return this.getLastTeam() != null && this.getLastTeam().approvals[this.players.map(p => p.id).indexOf(userId)] != null;
+    const lastTeam = this.getLastTeam();
+    return lastTeam != null && lastTeam.approvals[this.players.map(p => p.id).indexOf(userId)] != null;
   },
   checkMemberHasVoted(userId) {
-    return this.getLastMission() != null && this.getLastMission().votes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))] != null;
+    const lastMission = this.getLastMission();
+    return lastMission != null && lastMission.votes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))] != null;
   },
   findRequiredFailVotesCount(missionIndex) {
     return missionIndex == 3 && this.players.length >= 7 ? 2 : 1;
@@ -227,6 +267,10 @@ Groups.helpers({
         situation.status = ['Waiting for players to approve the mission team members'];
       } else if (this.isWaitingForVote()) {
         situation.status = ['Waiting for team members to vote for the mission success or fail'];
+      } else if (this.isSelectingLady()) {
+        situation.status = ['Lady ', <b key="lady">{this.getLady().username}</b>, ' is selecting next Lady'];
+      } else if (this.isRevealingLady()) {
+        situation.status = ['Next lady ', <b key="lady">{this.getNextLady().username}</b>, ' is waiting for being revealed'];
       } else if (this.isGuessingMerlin()) {
         situation.status = ['Waiting for ', <i key="assassin" className="avalon-evil">Assassin</i>, ' to guess ', <i key="merlin" className="avalon-good">Merlin's</i>, ' identity'];
         situation.result = null;
@@ -252,7 +296,7 @@ Groups.helpers({
     const playerRole = this.players[playerIndex].role;
     const otherPlayer = userId != playerId;
     const role = this.isPlaying() && this.getSituation().result == null && otherPlayer ? Groups.ROLES[userRole] && Groups.ROLES[userRole].visions && Groups.ROLES[userRole].visions[playerRole] || 'Unknown' : playerRole;
-    const side = (role == 'Good' ? true : role == 'Evil' ? false : (Groups.ROLES[role] || null) && Groups.ROLES[role].side);
+    const side = role == 'Good' ? true : role == 'Evil' ? false : (Groups.ROLES[role] || null) && Groups.ROLES[role].side;
     let status = '';
     if (this.isWaitingForApproval()) {
       const approval = this.getLastTeam().approvals[playerIndex];
@@ -284,7 +328,7 @@ Groups.helpers({
       const approval = this.getLastTeam().approvals[this.players.map(p => p.id).indexOf(userId)];
       suggestion =
         <p>
-          Press buttons to approve or deny the mission team members
+          Press button to approve or deny the mission team members
           <br/>
           <b>{approval == null ? '' : `(You ${approval ? 'approved' : 'denied'})`}</b>
         </p>;
@@ -292,9 +336,19 @@ Groups.helpers({
       const vote = this.getLastMission().votes[this.getLastTeam().memberIndices.indexOf(this.players.map(p => p.id).indexOf(userId))];
       suggestion =
         <p>
-          Press buttons to vote for the mission success or fail
+          Press button to vote for the mission success or fail
           <br/>
           <b>{vote == null ? '' : `(You voted for ${vote ? 'success' : 'fail'})`}</b>
+        </p>;
+    } else if (this.isSelectingLady() && this.hasLady(userId)) {
+      suggestion =
+        <p>
+          You are Lady. Select player cards then press '<b>Select next Lady</b>' button to select next Lady
+        </p>;
+    } else if (this.isRevealingLady() && this.hasLady(userId)) {
+      suggestion =
+        <p>
+          Press button to reveal next Lady <b>{this.getNextLady().username}</b>'s identity
         </p>;
     } else if (this.isGuessingMerlin() && this.findPlayerRole(userId) == 'Assassin') {
       suggestion =
@@ -338,6 +392,9 @@ Groups.ROLES = {
   },
   Oberon: { // Does not reveal himself to the other evil players, nor does he gain knowledge of the other evil players (aero, #9CC2CB)
     side: false
+  },
+  Lady: {
+    side: null
   }
 };
 
@@ -352,3 +409,4 @@ Groups.MISSIONS_MEMBERS_COUNT = {
   9: [3, 4, 4, 5, 5],
   10: [3, 4, 4, 5, 5],
 };
+Groups.INDICES_OF_MISSION_WHICH_SELECTS_NEXT_LADY = [2, 4]; // Start at 1

@@ -1,18 +1,20 @@
 import React from 'react';
 import { Groups } from '../../api/groups/groups.jsx'; // Constants only
-import { start, selectMembers, approve, vote, guess } from '../../api/groups/methods.js';
+import { start, selectMembers, approve, vote, selectLady, reveal, guess } from '../../api/groups/methods.js';
 import PlayerCard from './player_card.jsx';
 import ErrorModal from './error_modal.jsx';
 
 export default class PlayersContent extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { selectedMemberIndices: [], guessedIndex: -1, errorModal: { isShowing: false, reason: null } };
+    this.state = { selectedMemberIndices: [], selectedLadyIndex: -1, guessedIndex: -1, errorModal: { isShowing: false, reason: null } };
     this.restart = this.restart.bind(this);
     this.onPlayerCardClick = this.onPlayerCardClick.bind(this);
     this.selectMembers = this.selectMembers.bind(this);
     this.approve = this.approve.bind(this);
     this.vote = this.vote.bind(this);
+    this.selectLady = this.selectLady.bind(this);
+    this.reveal = this.reveal.bind(this);
     this.guess = this.guess.bind(this);
   }
 
@@ -21,6 +23,7 @@ export default class PlayersContent extends React.Component {
   render() {
     const { group } = this.props;
     const isSelectingMembers = group.isSelectingMembers() && group.hasLeader(Meteor.userId());
+    const isSelectingLady = group.isSelectingLady() && group.hasLady(Meteor.userId());
     const isGuessingMerlin = group.isGuessingMerlin() && group.findPlayerRole(Meteor.userId()) == 'Assassin';
     const leader = group.getLeader();
     const missions = group.getMissions();
@@ -58,14 +61,16 @@ export default class PlayersContent extends React.Component {
           {
             group.getPlayers().map((player, index) => {
               const isMember = group.getSituation().result === undefined && (this.state.selectedMemberIndices.indexOf(index) != -1 || group.hasMember(player.user._id));
+              const isSelectedLady = group.getSituation().result === undefined && (this.state.selectedLadyIndex == index || group.hasNextLady(player.user._id));
               const isGuessed = this.state.guessedIndex == index;
               const isSelectable =
                 isSelectingMembers ?
                   (isMember || this.state.selectedMemberIndices.length < Groups.MISSIONS_MEMBERS_COUNT[group.players.length][missions.length - 1] ? true : null) :
-                  isGuessingMerlin ? !isGuessed : false;
+                  isSelectingLady ? !group.ladies.map(l => l.playerIndex).includes(index) && !isSelectedLady :
+                    isGuessingMerlin ? !isGuessed : false;
               return <PlayerCard
                 key={player.user._id} onClick={() => { if (isSelectable) this.onPlayerCardClick(index); }}
-                isSelectable={isSelectable} isMember={isMember} isGuessed={isGuessed} group={group} player={player.user}/>;
+                isSelectable={isSelectable} isMember={isMember} isSelectedLady={isSelectedLady} isGuessed={isGuessed} group={group} player={player.user}/>;
             }
           )}
         </div>
@@ -83,13 +88,27 @@ export default class PlayersContent extends React.Component {
               <span>
                 <button className="btn btn-success" onClick={() => this.vote(true)}>Vote Success</button>
                 {
-                  !Groups.ROLES[group.findPlayerRole(Meteor.userId())].side ?
+                  Groups.ROLES[group.findPlayerRole(Meteor.userId())].side == false ?
                     <button className="btn btn-danger" onClick={() => this.vote(false)}>Vote Fail</button> : null
                 }
               </span> : null
           }
+          {isSelectingLady ? <button className="btn btn-info" onClick={this.selectLady}>Select next Lady</button> : null}
+          {
+            group.isRevealingLady() && group.hasLady(Meteor.userId()) ?
+              <span>
+                {
+                  group.findPlayerSide(Meteor.userId()) == false || group.findPlayerSide(Meteor.userId()) == true && group.findPlayerSide(group.getNextLady()._id) == true ?
+                    <button className="btn btn-success" onClick={() => this.reveal(true)}>Reveal next Lady as good side</button> : null
+                }
+                {
+                  group.findPlayerSide(Meteor.userId()) == false || group.findPlayerSide(Meteor.userId()) == true && group.findPlayerSide(group.getNextLady()._id) == false ?
+                    <button className="btn btn-danger" onClick={() => this.reveal(false)}>Reveal next Lady as evil side</button> : null
+                }
+              </span> : null
+          }
           {isGuessingMerlin ? <button className="btn btn-dark" onClick={this.guess}>Guess Merlin</button> : null}
-          {/*group.hasOwner(Meteor.userId()) ? <div><button className="btn btn-primary" onClick={this.restart}>Restart game</button></div> : null*/}
+          {/*group.hasOwner(Meteor.userId()) ? <div><button className="btn btn-primary" onClick={this.restart}>Restart game</button></div> : null*/}{/* TEST */}
         </div>
         {this.state.errorModal.isShowing ? <ErrorModal hide={() => this.setState({ errorModal: { isShowing: false } })} reason={this.state.errorModal.reason}/> : null}
       </div>
@@ -113,18 +132,20 @@ export default class PlayersContent extends React.Component {
     });
   }
 
-  onPlayerCardClick(memberIndex) {
+  onPlayerCardClick(playerIndex) {
     if (this.props.group.isSelectingMembers()) {
       const selectedMemberIndices = this.state.selectedMemberIndices;
-      const index = selectedMemberIndices.indexOf(memberIndex);
+      const index = selectedMemberIndices.indexOf(playerIndex);
       if (index == -1) {
-        selectedMemberIndices.push(memberIndex);
+        selectedMemberIndices.push(playerIndex);
       } else {
         selectedMemberIndices.splice(index, 1);
       }
       this.setState({ selectedMemberIndices: selectedMemberIndices });
+    } else if (this.props.group.isSelectingLady()) {
+      this.setState({ selectedLadyIndex: playerIndex });
     } else {
-      this.setState({ guessedIndex: memberIndex });
+      this.setState({ guessedIndex: playerIndex });
     }
   }
 
@@ -151,6 +172,26 @@ export default class PlayersContent extends React.Component {
   vote(success) {
     const groupId = this.props.group._id;
     vote.call({ groupId: groupId, success: success }, err => {
+      if (err) {
+        alert(err.reason);
+      }
+    });
+  }
+
+  selectLady() {
+    const { group } = this.props;
+    selectLady.call({ groupId: group._id, ladyIndex: this.state.selectedLadyIndex }, err => {
+      if (err) {
+        alert(err.reason);
+      } else {
+        this.setState({ selectedLadyIndex: -1 });
+      }
+    });
+  }
+
+  reveal(side) {
+    const groupId = this.props.group._id;
+    reveal.call({ groupId: groupId, side: side }, err => {
       if (err) {
         alert(err.reason);
       }

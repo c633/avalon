@@ -246,7 +246,8 @@ button.avalon-card-disable {
 .avalon-card-mark-left,
 .avalon-card-mark-top,
 .avalon-card-mark-right,
-.avalon-card-mark-bottom {
+.avalon-card-mark-bottom-left,
+.avalon-card-mark-bottom-right {
   position: absolute;
   width: 32px;
   height: 32px;
@@ -268,7 +269,12 @@ button.avalon-card-disable {
   right: 5px;
 }
 
-.avalon-card-mark-bottom {
+.avalon-card-mark-bottom-left {
+  bottom: -10px;
+  left: 5px;
+}
+
+.avalon-card-mark-bottom-right {
   bottom: -10px;
   right: 5px;
 }

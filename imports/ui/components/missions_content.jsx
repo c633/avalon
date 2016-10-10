@@ -1,4 +1,5 @@
 import React from 'react';
+import { Groups } from '../../api/groups/groups.jsx'; // Constants only
 import { sendMessage } from '../../api/groups/methods.js';
 
 export default class MissionsContent extends React.Component {
@@ -14,6 +15,7 @@ export default class MissionsContent extends React.Component {
           {
             group.getMissions(true).map((m, i) => {
               const lastResult = (m.length > 0 || null) && m[m.length - 1].result;
+              const missionLadyIndex = Groups.INDICES_OF_MISSION_WHICH_SELECTS_NEXT_LADY.indexOf(i + 1);
               return (
                 <div key={i} className="panel">
                   <div className="panel-heading" role="tab" aria-expanded="true">
@@ -46,6 +48,12 @@ export default class MissionsContent extends React.Component {
                           }
                         </tbody>
                       </table>
+                      {
+                        group.ladies && i + 1 == 1 ? `First Lady is ${players[group.ladies[0].playerIndex].username}` : null
+                      }
+                      {
+                        group.ladies && missionLadyIndex != -1 ? `Lady ${players[group.ladies[missionLadyIndex + 1].playerIndex].username} is revealed as ${group.ladies[missionLadyIndex + 1].revealedSide ? 'good' : 'evil'} player` : null
+                      }
                     </div>
                   </div>
                 </div>

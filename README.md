@@ -105,6 +105,7 @@ $ CLOUDINARY_KEY=<i>ApiKey</i> CLOUDINARY_SECRET=<i>ApiSecret</i> meteor --setti
 - [x] Group name: format validation and unique
 - [x] Lobby: add messages content
 - [ ] Show result when approve/vote finished (Notification)
+- [ ] Lady of the Lake
 - [ ] Separate events
 - [ ] `pub/sub` issue
 - [x] Update `Meteor`

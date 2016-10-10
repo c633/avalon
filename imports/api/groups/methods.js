@@ -86,19 +86,21 @@ export const start = new ValidatedMethod({
       const players = group.players;
       const playersCount = players.length;
       const evilPlayersCount = group.getEvilPlayersCount();
-      const roles = additionalRoles.concat(['Merlin', 'Assassin']); // Required players
-      const servants = Array.from(new Array(playersCount - evilPlayersCount - roles.filter(r => Groups.ROLES[r].side).length)).map(() => 'Servant');
-      const minions = Array.from(new Array(evilPlayersCount - roles.filter(r => !Groups.ROLES[r].side).length)).map(() => 'Minion');
+      const roles = additionalRoles.concat(['Merlin', 'Assassin']).filter(r => r != 'Lady'); // Required players
+      const servants = Array.from(new Array(playersCount - evilPlayersCount - roles.filter(r => Groups.ROLES[r].side == true).length)).map(() => 'Servant');
+      const minions = Array.from(new Array(evilPlayersCount - roles.filter(r => Groups.ROLES[r].side == false).length)).map(() => 'Minion');
       _.shuffle(roles.concat(servants, minions)).forEach((r, i) => players[i].role = r);
+      const firstLeaderIndex = Math.floor(Math.random() * playersCount);
+      const ladies = additionalRoles.includes('Lady') ? [{ playerIndex: (firstLeaderIndex + players.length - 1) % players.length, revealedSide: undefined }] : undefined;
       Groups.update(groupId, {
-        $set: { players: players, firstLeaderIndex: Math.floor(Math.random() * playersCount) }
+        $set: { players: players, firstLeaderIndex: firstLeaderIndex, ladies: ladies }
       });
       group = Groups.findOne(groupId); // Update local variable
       beginNewMission(group);
     } else {
       Groups.update(groupId, {
         $set: { players: group.players.map(player => ({ id: player.id, role: 'Undecided' })), firstLeaderIndex: 0, messages: [] },
-        $unset: { guessMerlin: 1 }
+        $unset: { ladies: 1, guessMerlin: 1 }
       });
     }
   },
@@ -161,6 +163,41 @@ export const vote = new ValidatedMethod({
   },
 });
 
+export const selectLady = new ValidatedMethod({
+  name: 'groups.selectLady',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    ladyIndex: { type: Number },
+  }).validator(),
+  run({ groupId, ladyIndex }) {
+    let group = Groups.findOne(groupId);
+    if (group.ladies.map(l => l.playerIndex).includes(ladyIndex)) {
+      throw new Meteor.Error('groups.selectLady.invalid', 'Invalid selected next Lady.');
+    }
+    Groups.update(groupId, {
+      $set: { [`ladies.${group.ladies.length - 1}.playerIndex`]: ladyIndex }
+    });
+    group = Groups.findOne(groupId); // Update local variable
+    beginRevealingLady(group);
+  },
+});
+
+export const reveal = new ValidatedMethod({
+  name: 'groups.reveal',
+  validate: new SimpleSchema({
+    groupId: { type: String },
+    side: { type: Boolean },
+  }).validator(),
+  run({ groupId, side }) {
+    let group = Groups.findOne(groupId);
+    Groups.update(groupId, {
+      $set: { [`ladies.${group.ladies.length - 1}.revealedSide`]: side }
+    });
+    group = Groups.findOne(groupId); // Update local variable
+    beginNewMission(group);
+  },
+});
+
 export const guess = new ValidatedMethod({
   name: 'groups.guess',
   validate: new SimpleSchema({
@@ -209,6 +246,12 @@ const beginNewMission = (group) => {
   } else if (missionResults.filter(m => m).length >= Groups.MISSIONS_COUNT_TO_WIN) {
     beginGuessingMerlin(group);
     return;
+  } else {
+    const index = Groups.INDICES_OF_MISSION_WHICH_SELECTS_NEXT_LADY.indexOf(group.missions.length);
+    if (group.ladies && index != -1 && group.ladies.length - 1 <= index) {
+      beginSelectingLady(group);
+      return;
+    }
   }
   const newMission = { teams: [], votes: [] };
   Groups.update(group._id, {
@@ -264,6 +307,18 @@ const beginWaitingForVote = (group) => {
   }
 }
 
+const beginSelectingLady = (group) => {
+  Groups.update(group._id, {
+    $push: { ladies: { playerIndex: undefined, revealedSide: undefined } }
+  });
+}
+
+const beginRevealingLady = (group) => {
+  Groups.update(group._id, {
+    $set: { [`ladies.${group.ladies.length - 1}.revealedSide`]: null }
+  });
+}
+
 const beginGuessingMerlin = (group) => {
   // const guessMerlin = Math.random() > 0.5 ? true : false; // TEST
   const guessMerlin = null;
@@ -281,7 +336,7 @@ const finish = (group) => {
   const playerActivities = [];
   const result = group.getSituation().result;
   for (const p of group.players) {
-    playerActivities.push({ id: p.id, activity: { finishedAt: new Date(), role: p.role, result: Groups.ROLES[p.role].side ? result : !result, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 } });
+    playerActivities.push({ id: p.id, activity: { finishedAt: new Date(), role: p.role, result: Groups.ROLES[p.role].side == true ? result : !result, deniedTeamsCount: 0, successTeamsCount: 0, failTeamsCount: 0 } });
   };
   for (const m of group.getMissions(true)) {
     for (const t of m) {

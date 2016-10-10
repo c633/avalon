@@ -27,10 +27,10 @@ export default class RolesContent extends React.Component {
         </div>
         <div className="row" style={{ marginBottom: '10px' }}>
           {
-            ['Percival', 'Mordred', 'Morgana', 'Oberon'].map(r => {
+            ['Percival', 'Mordred', 'Morgana', 'Oberon', 'Lady'].map(r => {
               const isSelected = this.state.selectedAdditionalRoles.indexOf(r) != -1;
               const isSelectable = isSelected ||
-                this.state.selectedAdditionalRoles.filter(r => !Groups.ROLES[r].side).length < group.getEvilPlayersCount() - 1 ||
+                this.state.selectedAdditionalRoles.filter(r => Groups.ROLES[r].side == false).length < group.getEvilPlayersCount() - 1 ||
                 (r == 'Percival' && this.state.selectedAdditionalRoles.indexOf('Morgana') != -1);
               return <RoleCard key={r} onClick={() => { if (isSelectable) this.onRoleCardClick(r); }} isSelectable={isSelectable} isSelected={isSelected} role={r}/>;
             })
@@ -52,7 +52,7 @@ export default class RolesContent extends React.Component {
     const { group } = this.props;
     start.call({ groupId: group._id, additionalRoles: this.state.selectedAdditionalRoles, reset: false }, err => {
       if (err) {
-        alert(err.reason);
+        alert(err);
       }
     });
   }
